@@ -12,6 +12,7 @@ app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 const activeConnections = {};
 
 app.post('/interactions', async (req, res) => {
+    console.log('first interaction');
     const { type, data, guild_id, member } = req.body;
 
     if (type === InteractionType.PING) {
