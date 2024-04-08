@@ -3,13 +3,15 @@
     "version": "1.0.0",
     "type": "module",
     "description": "Discord bot to play music",
-    "main": "app.js",
+    "main": "src/app.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node src/app.js"
     },
     "author": "DevKames",
     "license": "ISC",
     "dependencies": {
+        "discord-interactions": "^3.4.0",
         "dotenv": "^16.4.5",
         "express": "^4.19.2"
     }

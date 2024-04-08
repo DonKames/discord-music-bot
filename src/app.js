@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
+import { InteractionResponseType, InteractionType } from 'discord-interactions';
+import { VerifyDiscordRequest } from './utils/utils.js';
 
 const app = express();
 
