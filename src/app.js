@@ -1,5 +1,12 @@
-import { Client, GatewayIntentBits } from 'discord.js';
 import 'dotenv/config';
+import ytdl from 'ytdl-core';
+import { Client, GatewayIntentBits } from 'discord.js';
+import {
+    joinVoiceChannel,
+    createAudioResource,
+    createAudioPlayer,
+    StreamType,
+} from '@discordjs/voice';
 
 const client = new Client({
     intents: [
@@ -14,6 +21,8 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async (interaction) => {
+    console.log('🚀 ~ client.on ~ interaction:', interaction);
+
     if (!interaction.isCommand()) return;
 
     const { commandName } = interaction;
@@ -37,9 +46,45 @@ client.on('interactionCreate', async (interaction) => {
                 'Debes estar en un canal de voz para usar este comando.',
             );
         } else {
-            // Si el miembro está en un canal de voz, únete a ese canal
-            // const connection = await member.voice.channel.join();
-            await interaction.reply('Conectado!');
+            try {
+                // Si el miembro está en un canal de voz, únete a ese canal
+                const connection = joinVoiceChannel({
+                    channelId: member.voice.channelId,
+                    guildId: interaction.guildId,
+                    adapterCreator: interaction.guild.voiceAdapterCreator,
+                });
+
+                console.log('pasa joinVoiceChannel');
+
+                const player = createAudioPlayer();
+
+                console.log('pasa createAudioPlayer');
+
+                connection.subscribe(player);
+
+                const stream = ytdl(
+                    'https://youtu.be/dmDyGkzc6x0?list=RD_6XzJPyAJDI',
+                    { filter: 'audioonly' },
+                );
+
+                const resource = createAudioResource(stream);
+
+                console.log('pasa subscribe');
+
+                // const resource = createAudioResource('assets/Grabación.m4a', {
+                //     inputType: StreamType.Arbitrary,
+                // });
+
+                player.play(resource);
+
+                console.log('pasa createAudioResource');
+
+                await interaction.reply('Reproduciendo....');
+                // await interaction.reply('Conectado!');
+            } catch (error) {
+                console.log('error:', error);
+                await interaction.reply('Error al reproducir audio.');
+            }
         }
     }
 });
