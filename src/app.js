@@ -80,7 +80,7 @@ client.on('interactionCreate', async (interaction) => {
                         isAttemptingReplay = true;
                         // Intenta reconectar después de un breve retraso
                         setTimeout(() => {
-                            replayFromLastTime(lastPlayTime);
+                            replayFromLastTime(player, link, lastPlayTime);
                         }, 1000); // Ajusta el tiempo de retraso según sea necesario
                     }
                 });
@@ -116,11 +116,11 @@ client.on('interactionCreate', async (interaction) => {
 
 client.login(process.env.DISCORD_TOKEN);
 
-function replayFromLastTime(startTime) {
+function replayFromLastTime(player, link, startTime) {
     // Implementa la lógica para reiniciar la reproducción usando ytdl-core
     // y saltar al tiempo de inicio especificado si es posible
     const streamOptions = { filter: 'audioonly', begin: startTime * 1000 }; // ytdl-core usa milisegundos
-    const stream = ytdl('URL_DEL_VIDEO_DE_YOUTUBE', streamOptions);
+    const stream = ytdl(link, streamOptions);
     const resource = createAudioResource(stream);
     player.play(resource);
     isAttemptingReplay = false;
