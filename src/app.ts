@@ -20,5 +20,5 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-// Inicia sesión en Discord con el token del bot
+// Inicia sesión en Discord con el token del bott
 client.login(process.env.DISCORD_TOKEN);
