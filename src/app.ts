@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import { Command } from './interfaces/Command';
@@ -52,17 +51,6 @@ client.on('interactionCreate', async (interaction) => {
             ephemeral: true,
         });
     }
-
-    // const { commandName } = interaction;
-
-    // if (commandName === 'test') {
-    //     await interaction.reply('Hello, World!');
-    // } else if (commandName === 'play') {
-    //     await interaction.reply({
-    //         content: 'Hubo un error al ejecutar este comando.',
-    //         ephemeral: true,
-    //     });
-    // }
 });
 
 client.login(process.env.DISCORD_TOKEN);
