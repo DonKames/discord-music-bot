@@ -10,8 +10,16 @@ const TEST_COMMAND = {
 
 const PLAY_COMMAND = {
     name: 'play',
-    description: 'Play a song',
+    description: 'Play a song from a YouTube link',
     type: 1,
+    options: [
+        {
+            name: 'link',
+            description: 'The YouTube link of the song to play',
+            type: 3,
+            required: true,
+        },
+    ],
 };
 
 const ALL_COMMANDS = [TEST_COMMAND, PLAY_COMMAND];
