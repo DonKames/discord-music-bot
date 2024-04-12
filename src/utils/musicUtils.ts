@@ -1,15 +1,16 @@
 import { CommandInteraction } from "discord.js";
-import { ExtendedClient } from "../ExtendedClient";
 import {
   VoiceConnection,
   createAudioPlayer,
   createAudioResource,
 } from "@discordjs/voice";
-import { QueueItem } from "./MusicQueue";
+import ytdl from "ytdl-core";
+import fs from "fs";
 import { Readable } from "stream";
 import { promisify } from "util";
-import fs from "fs";
-import ytdl from "ytdl-core";
+
+import { QueueItem } from "./MusicQueue";
+import { ExtendedClient } from "../ExtendedClient";
 
 // Función auxiliar para convertir un stream a buffer
 export function streamToBuffer(stream: Readable) {
