@@ -10,7 +10,8 @@ import fs from 'fs';
 import { promisify } from 'util';
 import { Readable } from 'stream';
 import { ExtendedClient } from '../ExtendedClient';
-import { QueueItem } from '../utils/MusiQueue';
+import { QueueItem } from '../utils/MusicQueue';
+import { CommandInteraction } from 'discord.js';
 
 const writeFileAsync = promisify(fs.writeFile);
 const unlinkAsync = promisify(fs.unlink);
@@ -58,77 +59,14 @@ const play: Command = {
             client.musicQueue.addToQueue(song);
             playSong(client, interaction, client.musicQueue.getNextItem()!);
         }
-
-        //         // Descarga el video
-        //         const videoStream = ytdl(link, { filter: 'audioonly' });
-        //         const videoBuffer = await streamToBuffer(videoStream);
-        //         await writeFileAsync(tempFileName, videoBuffer);
-
-        //         // Revisa que exista guild
-        //         if (!interaction.guild) {
-        //             {
-        //                 await interaction.reply(
-        //                     'Este comando solo puede ser usado dentro de un servidor.',
-        //                 );
-        //                 return;
-        //             }
-        //         }
-
-        //         // Obtiene el miembro que ejecutó el comando
-        //         const member = await interaction.guild.members.fetch(
-        //             interaction.user.id,
-        //         );
-
-        //         // Revisa que el comando se usa en un servidor, no en DMs
-        //         if (!interaction.guildId) {
-        //             await interaction.reply(
-        //                 'Este comando solo puede ser usado en un servidor.',
-        //             );
-        //             return;
-        //         }
-
-        //         // Verifica si el miembro está en un canal de voz
-        //         if (!member.voice.channelId) {
-        //             {
-        //                 await interaction.reply(
-        //                     'Debes estar en un canal de voz para usar este comando.',
-        //                 );
-        //                 return;
-        //             }
-        //         }
-
-        //         // Reproduce el archivo descargado
-        //         const connection = joinVoiceChannel({
-        //             channelId: member.voice.channelId,
-        //             guildId: interaction.guildId,
-        //             adapterCreator: interaction.guild.voiceAdapterCreator,
-        //         });
-
-        //         const player = createAudioPlayer();
-        //         const resource = createAudioResource(tempFileName);
-        //         connection.subscribe(player);
-        //         player.play(resource);
-
-        //         await interaction.reply(`Reproduciendo: **${videoTitle}**`);
-
-        //         // Elimina el archivo temporal después de la reproducción
-        //         player.on('stateChange', (oldState, newState) => {
-        //             if (newState.status === 'idle') {
-        //                 unlinkAsync(tempFileName).catch(console.error);
-        //             }
-        //         });
-        //     } catch (error) {
-        //         console.log('🚀 ~ execute: ~ error:', error);
-        //         await interaction.reply(
-        //             'Hubo un error al intentar reproducir el video.',
-        //         );
-        //         // Intenta eliminar el archivo temporal en caso de error
-        //         unlinkAsync(tempFileName).catch(console.error);
-        // }
     },
 };
 
-async function playSong(client: ExtendedClient, interaction, song: QueueItem) {
+async function playSong(
+    client: ExtendedClient,
+    interaction: CommandInteraction,
+    song: QueueItem,
+) {
     const { url, title } = song;
 
     // Define el nombre del archivo temporal
@@ -140,9 +78,29 @@ async function playSong(client: ExtendedClient, interaction, song: QueueItem) {
         const videoBuffer = await streamToBuffer(videoStream);
         await writeFileAsync(tempFileName, videoBuffer);
 
+        // Verifica que interaction.member y interaction.guild no sean nulos
+        if (!interaction.member || !interaction.guild || !interaction.guildId) {
+            console.error(
+                'Error: interaction.member o interaction.guild es nulo.',
+            );
+            return;
+        }
+
+        const member = await interaction.guild.members.fetch(
+            interaction.user.id,
+        );
+
+        // Verifica que el miembro esté en un canal de voz
+        if (!member.voice.channelId) {
+            await interaction.followUp(
+                'Debes estar en un canal de voz para usar este comando.',
+            );
+            return;
+        }
+
         // Reproduce el archivo descargado
         const connection = joinVoiceChannel({
-            channelId: interaction.member.voice.channelId,
+            channelId: member.voice.channelId,
             guildId: interaction.guildId,
             adapterCreator: interaction.guild.voiceAdapterCreator,
         });
@@ -152,7 +110,7 @@ async function playSong(client: ExtendedClient, interaction, song: QueueItem) {
         connection.subscribe(player);
         player.play(resource);
 
-        await interaction.followUp(`Reproduciendo ahora: **${title}**`);
+        await interaction.reply(`Reproduciendo ahora: **${title}**`);
 
         // Maneja la finalización de la reproducción y la cola
         player.on('stateChange', async (oldState, newState) => {
@@ -168,9 +126,16 @@ async function playSong(client: ExtendedClient, interaction, song: QueueItem) {
         });
     } catch (error) {
         console.error('Error al reproducir el video:', error);
-        await interaction.followUp(
-            'Hubo un error al intentar reproducir el video.',
-        );
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp(
+                'Hubo un error al intentar reproducir el video???.',
+            );
+        } else {
+            await interaction.reply(
+                'Hubo un error al intentar reproducir el video???.',
+            );
+            console.error('La interacción ya ha sido respondida previamente.');
+        }
         unlinkAsync(tempFileName).catch(console.error); // Intenta eliminar el archivo temporal en caso de error
     }
 }

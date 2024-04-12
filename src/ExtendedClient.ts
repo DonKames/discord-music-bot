@@ -1,6 +1,6 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { Command } from './interfaces/Command';
-import { MusicQueue } from './utils/MusiQueue';
+import { MusicQueue } from './utils/MusicQueue';
 
 // Extiende la clase Client para incluir una colección de comandos.
 export class ExtendedClient extends Client {
