@@ -3,6 +3,8 @@ import { CommandInteraction } from "discord.js";
 import { Command } from "../interfaces/Command";
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueItem } from "../utils/MusicQueue";
+import { playSong } from "../utils/musicUtils";
+import { getVoiceConnection } from "@discordjs/voice";
 
 const next: Command = {
   name: "next",
@@ -36,11 +38,28 @@ async function playNextSong(
   interaction: CommandInteraction,
   nextSong: QueueItem
 ) {
-  if (!nextSong) {
+  const member = await interaction.guild?.members.fetch(interaction.user.id);
+
+  if (!member || !member.voice.channelId) {
+    await interaction.reply(
+      "Debes estar en un canal de voz para usar este comando."
+    );
     return;
   }
 
-  // playSong(nextSong.url);
+  // const connection = client.voice?.adapters.get(interaction.guildId!);
+
+  const connection = getVoiceConnection(interaction.guildId!);
+  if (!connection) {
+    await interaction.reply("No estoy conectado a un canal de voz.");
+    return;
+  }
+
+  // Aquí puedes detener la canción actual si es necesario
+  // Por ejemplo: connection?.destroy();
+
+  // Reproduce la siguiente canción en la cola
+  playSong(client, interaction, connection, nextSong);
 }
 
 export default next;
