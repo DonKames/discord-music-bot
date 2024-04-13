@@ -12,6 +12,9 @@ import { promisify } from "util";
 import { QueueItem } from "./MusicQueue";
 import { ExtendedClient } from "../ExtendedClient";
 
+const writeFileAsync = promisify(fs.writeFile);
+const unlinkAsync = promisify(fs.unlink);
+
 // Función auxiliar para convertir un stream a buffer
 export function streamToBuffer(stream: Readable) {
   return new Promise<Buffer>((resolve, reject) => {
@@ -28,23 +31,14 @@ export async function playSong(
   connection: VoiceConnection,
   song: QueueItem
 ) {
-  const writeFileAsync = promisify(fs.writeFile);
-  const unlinkAsync = promisify(fs.unlink);
-
   const { url, title } = song;
 
-  // Define el nombre del archivo temporal
-  const tempFileName = `temp_audio_${Date.now()}.mp4`;
-
   try {
-    // Descarga el video como audio
-    const videoStream = ytdl(url, { filter: "audioonly" });
-    const videoBuffer = await streamToBuffer(videoStream);
-    await writeFileAsync(tempFileName, videoBuffer);
+    const songName = await downloadSong(url);
 
     // Reproduce el archivo descargado
     const player = createAudioPlayer();
-    const resource = createAudioResource(tempFileName);
+    const resource = createAudioResource(songName!);
     connection.subscribe(player);
     player.play(resource);
 
@@ -53,7 +47,7 @@ export async function playSong(
     // Maneja la finalización de la reproducción y la cola
     player.on("stateChange", async (oldState, newState) => {
       if (newState.status === "idle") {
-        unlinkAsync(tempFileName).catch(console.error);
+        unlinkAsync(songName!).catch(console.error);
         client.musicQueue.playing = false;
         const nextSong = client.musicQueue.getNextItem();
         if (nextSong) {
@@ -73,8 +67,23 @@ export async function playSong(
       );
       console.error("La interacción ya ha sido respondida previamente.");
     }
+  }
+}
 
-    // Intenta eliminar el archivo temporal en caso de error
-    unlinkAsync(tempFileName).catch(console.error);
+export async function downloadSong(url: string) {
+  // Define el nombre del archivo temporal
+  const tempFileName = `temp_audio_${Date.now()}.mp4`;
+
+  try {
+    // Descarga el video como audio
+    const videoStream = ytdl(url, { filter: "audioonly" });
+    const videoBuffer = await streamToBuffer(videoStream);
+    await writeFileAsync(tempFileName, videoBuffer);
+
+    // Devuelve el nombre del archivo temporal
+    return tempFileName;
+  } catch (error) {
+    console.error("Error al descargar el video:", error);
+    return null;
   }
 }
