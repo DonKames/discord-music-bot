@@ -11,19 +11,10 @@ import { promisify } from "util";
 
 import { QueueItem } from "./MusicQueue";
 import { ExtendedClient } from "../ExtendedClient";
+import { errorHandler } from "./errorHandler";
 
 const writeFileAsync = promisify(fs.writeFile);
 const unlinkAsync = promisify(fs.unlink);
-
-// Función auxiliar para convertir un stream a buffer
-export function streamToBuffer(stream: Readable) {
-  return new Promise<Buffer>((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    stream.on("data", (chunk: Buffer) => chunks.push(chunk));
-    stream.on("end", () => resolve(Buffer.concat(chunks)));
-    stream.on("error", reject);
-  });
-}
 
 export async function playSong(
   client: ExtendedClient,
@@ -34,47 +25,46 @@ export async function playSong(
   const { url, title } = song;
 
   try {
+    // Descarga el archivo de audio
     const songName = await downloadSong(url);
 
-    // Reproduce el archivo descargado
-    const player = createAudioPlayer();
-    const resource = createAudioResource(songName!);
-    connection.subscribe(player);
-    player.play(resource);
+    if (songName) {
+      // Reproduce el archivo descargado
+      const player = createAudioPlayer();
+      const resource = createAudioResource(songName!);
+      connection.subscribe(player);
+      player.play(resource);
 
-    await interaction.reply(`Reproduciendo ahora: **${title}**`);
-
-    // Maneja la finalización de la reproducción y la cola
-    player.on("stateChange", async (oldState, newState) => {
-      if (newState.status === "idle") {
-        unlinkAsync(songName!).catch(console.error);
-        client.musicQueue.playing = false;
-        const nextSong = client.musicQueue.getNextItem();
-        if (nextSong) {
-          playSong(client, interaction, connection, nextSong);
-        }
+      if (interaction.deferred || interaction.replied) {
+        await interaction.followUp(`Reproduciendo ahora: **${title}**`);
+      } else {
+        await interaction.reply(`Reproduciendo ahora: **${title}**`);
       }
-    });
-  } catch (error) {
-    console.error("Error al reproducir el video:", error);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(
-        "Hubo un error al intentar reproducir el video."
-      );
+
+      // Maneja la finalización de la reproducción y la cola
+      player.on("stateChange", async (oldState, newState) => {
+        if (newState.status === "idle") {
+          unlinkAsync(songName!).catch(console.error);
+          client.musicQueue.playing = false;
+          const nextSong = client.musicQueue.getNextItem();
+          if (nextSong) {
+            playSong(client, interaction, connection, nextSong);
+          }
+        }
+      });
     } else {
-      await interaction.reply(
-        "Hubo un error al intentar reproducir el video?."
-      );
-      console.error("La interacción ya ha sido respondida previamente.");
+      throw new Error("Error al descargar el archivo de audio.");
     }
+  } catch (error) {
+    errorHandler(error, interaction);
   }
 }
 
 export async function downloadSong(url: string) {
-  // Define el nombre del archivo temporal
-  const tempFileName = `temp_audio_${Date.now()}.mp4`;
-
   try {
+    // Define el nombre del archivo temporal
+    const tempFileName = `temp_audio_${Date.now()}.mp4`;
+
     // Descarga el video como audio
     const videoStream = ytdl(url, { filter: "audioonly" });
     const videoBuffer = await streamToBuffer(videoStream);
@@ -84,6 +74,17 @@ export async function downloadSong(url: string) {
     return tempFileName;
   } catch (error) {
     console.error("Error al descargar el video:", error);
+
     return null;
   }
+}
+
+// Función auxiliar para convertir un stream a buffer
+export function streamToBuffer(stream: Readable) {
+  return new Promise<Buffer>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on("data", (chunk: Buffer) => chunks.push(chunk));
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+    stream.on("error", reject);
+  });
 }

@@ -28,6 +28,12 @@ const NEXT_COMMAND = {
   type: 1,
 };
 
-const ALL_COMMANDS = [TEST_COMMAND, PLAY_COMMAND, NEXT_COMMAND];
+const QUEUE_COMMAND = {
+  name: "queue",
+  description: "Show the queue.",
+  type: 1,
+};
+
+const ALL_COMMANDS = [TEST_COMMAND, PLAY_COMMAND, NEXT_COMMAND, QUEUE_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
