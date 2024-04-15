@@ -8,12 +8,12 @@ const queue: Command = {
   execute: async (interaction: CommandInteraction) => {
     const client = interaction.client as ExtendedClient;
 
-    if (!client.musicQueue || client.musicQueue.queue.length === 0) {
+    if (!client.music || client.music.queue.songs.length === 0) {
       await interaction.reply("No hay canciones en la cola de reproducción.");
 
       return;
     } else {
-      const queue = client.musicQueue.queue.map((song, index) => {
+      const queue = client.music.queue.songs.map((song, index) => {
         return `${index + 1}. ${song.title}`;
       });
 

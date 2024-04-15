@@ -1,15 +1,11 @@
 import { CommandInteraction } from "discord.js";
-import {
-  VoiceConnection,
-  createAudioPlayer,
-  createAudioResource,
-} from "@discordjs/voice";
+import { VoiceConnection, createAudioResource } from "@discordjs/voice";
 import ytdl from "ytdl-core";
 import fs from "fs";
 import { Readable } from "stream";
 import { promisify } from "util";
 
-import { QueueItem } from "./MusicQueue";
+import { Music, QueueSong } from "./Music";
 import { ExtendedClient } from "../ExtendedClient";
 import { errorHandler } from "./errorHandler";
 
@@ -20,7 +16,7 @@ export async function playSong(
   client: ExtendedClient,
   interaction: CommandInteraction,
   connection: VoiceConnection,
-  song: QueueItem
+  song: QueueSong
 ) {
   const { url, title } = song;
 
@@ -28,12 +24,16 @@ export async function playSong(
     // Descarga el archivo de audio
     const songName = await downloadSong(url);
 
+    // Verifica que el archivo se haya descargado antes de intentar reproducirlo
     if (songName) {
       // Reproduce el archivo descargado
-      const player = createAudioPlayer();
+      // const player = createAudioPlayer();
+      const musicInstance = Music.getInstance();
+      const audioPlayer = musicInstance.audioPlayer!;
+
+      connection.subscribe(audioPlayer);
       const resource = createAudioResource(songName!);
-      connection.subscribe(player);
-      player.play(resource);
+      audioPlayer.play(resource);
 
       if (interaction.deferred || interaction.replied) {
         await interaction.followUp(`Reproduciendo ahora: **${title}**`);
@@ -42,11 +42,11 @@ export async function playSong(
       }
 
       // Maneja la finalización de la reproducción y la cola
-      player.on("stateChange", async (oldState, newState) => {
+      audioPlayer.on("stateChange", async (oldState, newState) => {
         if (newState.status === "idle") {
           unlinkAsync(songName!).catch(console.error);
-          client.musicQueue.playing = false;
-          const nextSong = client.musicQueue.getNextItem();
+          client.music.isPlaying = false;
+          const nextSong = client.music.queue.getNextItem();
           if (nextSong) {
             playSong(client, interaction, connection, nextSong);
           }
@@ -87,4 +87,17 @@ export function streamToBuffer(stream: Readable) {
     stream.on("end", () => resolve(Buffer.concat(chunks)));
     stream.on("error", reject);
   });
+}
+
+// Función para pausar la canción actual
+export function pauseSong(interaction: CommandInteraction) {
+  // Pausa el AudioPlayer si está reproduciendo
+  try {
+    const music = Music.getInstance();
+
+    if (!music.isPlaying) {
+      interaction.reply("No hay canciones reproduciéndose.");
+      return;
+    }
+  } catch (error) {}
 }

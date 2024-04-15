@@ -2,7 +2,7 @@ import ytdl from "ytdl-core";
 import { joinVoiceChannel } from "@discordjs/voice";
 
 import { ExtendedClient } from "../ExtendedClient";
-import { QueueItem } from "../utils/MusicQueue";
+import { QueueSong } from "../utils/Music";
 import { Command } from "../interfaces/Command";
 import { playSong } from "../utils/musicUtils";
 
@@ -47,14 +47,14 @@ const play: Command = {
     const videoInfo = await ytdl.getInfo(link);
     const videoTitle = videoInfo.videoDetails.title;
 
-    const song: QueueItem = {
+    const song: QueueSong = {
       title: videoTitle,
       url: link,
     };
 
     // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
-    if (client.musicQueue.playing) {
-      client.musicQueue.addToQueue(song);
+    if (client.music.isPlaying) {
+      client.music.queue.addToQueue(song);
       await interaction.reply(`Añadido a la cola: **${videoTitle}**`);
     } else {
       // Si no hay música reproduciéndose, comienza a reproducir y establece el estado a reproduciendo
@@ -63,13 +63,13 @@ const play: Command = {
         guildId: interaction.guildId,
         adapterCreator: interaction.guild.voiceAdapterCreator,
       });
-      client.musicQueue.playing = true;
-      client.musicQueue.addToQueue(song);
+      client.music.isPlaying = true;
+      client.music.queue.addToQueue(song);
       playSong(
         client,
         interaction,
         connection,
-        client.musicQueue.getNextItem()!
+        client.music.queue.getNextItem()!
       );
     }
   },

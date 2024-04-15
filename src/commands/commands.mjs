@@ -33,7 +33,30 @@ const QUEUE_COMMAND = {
   description: "Show the queue.",
   type: 1,
 };
+const PAUSE_COMMAND = {
+  name: "pause",
+  description: "Pause the current song.",
+  type: 1,
+};
+const CLEAR_COMMAND = {
+  name: "clear",
+  description: "Clear the queue.",
+  type: 1,
+};
+const STOP_COMMAND = {
+  name: "stop",
+  description: "Stop the current song.",
+  type: 1,
+};
 
-const ALL_COMMANDS = [TEST_COMMAND, PLAY_COMMAND, NEXT_COMMAND, QUEUE_COMMAND];
+const ALL_COMMANDS = [
+  TEST_COMMAND,
+  PLAY_COMMAND,
+  NEXT_COMMAND,
+  QUEUE_COMMAND,
+  PAUSE_COMMAND,
+  CLEAR_COMMAND,
+  STOP_COMMAND,
+];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

@@ -2,7 +2,7 @@ import { CommandInteraction } from "discord.js";
 
 import { Command } from "../interfaces/Command";
 import { ExtendedClient } from "../ExtendedClient";
-import { QueueItem } from "../utils/MusicQueue";
+import { QueueSong } from "../utils/Music";
 import { playSong } from "../utils/musicUtils";
 import { getVoiceConnection } from "@discordjs/voice";
 import { errorHandler } from "../utils/errorHandler";
@@ -13,13 +13,13 @@ const next: Command = {
   execute: async (interaction: CommandInteraction) => {
     const client = interaction.client as ExtendedClient;
 
-    if (!client.musicQueue || client.musicQueue.queue.length === 0) {
+    if (!client.music || client.music.queue.songs.length === 0) {
       await interaction.reply("No hay canciones en la cola de reproducción.");
 
       return;
     }
 
-    const nextSong = client.musicQueue.getNextItem();
+    const nextSong = client.music.queue.getNextItem();
 
     if (!nextSong) {
       await interaction.reply(
@@ -37,7 +37,7 @@ const next: Command = {
 async function playNextSong(
   client: ExtendedClient,
   interaction: CommandInteraction,
-  nextSong: QueueItem
+  nextSong: QueueSong
 ) {
   try {
     const member = await interaction.guild?.members.fetch(interaction.user.id);
