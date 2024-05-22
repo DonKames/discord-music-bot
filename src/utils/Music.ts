@@ -13,6 +13,10 @@ class Queue {
     this.songs = [];
   }
 
+  clearQueue() {
+    this.songs = [];
+  }
+
   addToQueue(item: QueueSong) {
     this.songs.push(item);
   }

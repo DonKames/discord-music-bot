@@ -7,6 +7,8 @@ export class ExtendedClient extends Client {
   public commands: Collection<string, Command> = new Collection();
   public music: Music = Music.getInstance();
 
+  private static instance: ExtendedClient;
+
   constructor() {
     super({
       intents: [
@@ -15,5 +17,13 @@ export class ExtendedClient extends Client {
         GatewayIntentBits.GuildVoiceStates,
       ],
     });
+  }
+
+  public static getInstance(): ExtendedClient {
+    if (!ExtendedClient.instance) {
+      ExtendedClient.instance = new ExtendedClient();
+    }
+
+    return ExtendedClient.instance;
   }
 }

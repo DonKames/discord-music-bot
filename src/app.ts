@@ -6,7 +6,7 @@ import { handleInteraction } from "./utils/handleInteraction";
 import { errorHandler } from "./utils/errorHandler";
 
 // Crea una instancia del cliente extendido
-const client = new ExtendedClient();
+const client = ExtendedClient.getInstance();
 
 client.on("error", (error) => errorHandler(error));
 

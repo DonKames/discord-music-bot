@@ -43,33 +43,48 @@ const play: Command = {
       return;
     }
 
-    // Obtiene información del video para el título
-    const videoInfo = await ytdl.getInfo(link);
-    const videoTitle = videoInfo.videoDetails.title;
+    // Responder de forma diferida
+    await interaction.deferReply();
 
-    const song: QueueSong = {
-      title: videoTitle,
-      url: link,
-    };
+    try {
+      // Obtiene información del video para el título
+      const videoInfo = await ytdl.getInfo(link);
+      const videoTitle = videoInfo.videoDetails.title;
 
-    // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
-    if (client.music.isPlaying) {
-      client.music.queue.addToQueue(song);
-      await interaction.reply(`Añadido a la cola: **${videoTitle}**`);
-    } else {
-      // Si no hay música reproduciéndose, comienza a reproducir y establece el estado a reproduciendo
-      const connection = joinVoiceChannel({
-        channelId: member.voice.channelId,
-        guildId: interaction.guildId,
-        adapterCreator: interaction.guild.voiceAdapterCreator,
-      });
-      client.music.isPlaying = true;
-      client.music.queue.addToQueue(song);
-      playSong(
-        client,
-        interaction,
-        connection,
-        client.music.queue.getNextItem()!
+      const song: QueueSong = {
+        title: videoTitle,
+        url: link,
+      };
+
+      // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
+      if (client.music.isPlaying) {
+        client.music.queue.addToQueue(song);
+        await interaction.reply(`Añadido a la cola: **${videoTitle}**`);
+      } else {
+        // Si no hay música reproduciéndose, comienza a reproducir y establece el estado a reproduciendo
+        const connection = joinVoiceChannel({
+          channelId: member.voice.channelId,
+          guildId: interaction.guildId,
+          adapterCreator: interaction.guild.voiceAdapterCreator,
+        });
+        client.music.isPlaying = true;
+        client.music.queue.addToQueue(song);
+        playSong(
+          client,
+          interaction,
+          connection,
+          client.music.queue.getNextItem()!
+        );
+
+        await interaction.followUp(`Reproduciendo ahora: **${videoTitle}**`);
+      }
+    } catch (error) {
+      console.error(
+        "Error al obtener información del video o al reproducir la canción:",
+        error
+      );
+      await interaction.followUp(
+        "Hubo un error al intentar reproducir la canción."
       );
     }
   },
