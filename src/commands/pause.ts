@@ -7,7 +7,7 @@ const pause: Command = {
   name: "pause",
   description: "Pauses the current song",
   execute: async (interaction: CommandInteraction) => {
-    const client = interaction.client as ExtendedClient;
+    const client = ExtendedClient.getInstance();
 
     const music = Music.getInstance();
 

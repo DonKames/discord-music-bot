@@ -10,7 +10,7 @@ const play: Command = {
   name: "play",
   description: "Download and play a song from YouTube",
   execute: async (interaction) => {
-    const client = interaction.client as ExtendedClient;
+    const client = ExtendedClient.getInstance();
 
     const linkOption = interaction.options.get("link", true);
     // console.log('🚀 ~ playCommand ~ linkOption:', linkOption);
