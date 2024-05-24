@@ -1,3 +1,4 @@
+import "dotenv/config";
 import ytdl from "ytdl-core";
 import { joinVoiceChannel } from "@discordjs/voice";
 
@@ -6,6 +7,41 @@ import { QueueSong } from "../utils/Music";
 import { Command } from "../interfaces/Command";
 import { playSong } from "../utils/musicUtils";
 
+const YOUTUBE_TOKEN = process.env.YOUTUBE_KEY;
+
+async function searchYouTube(
+  query: string
+): Promise<{ videoId: string; videoTitle: string; videoUrl: string } | null> {
+  try {
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_TOKEN}&part=snippet&q=${encodeURIComponent(
+      query
+    )}&type=video`;
+
+    const response = await fetch(searchUrl);
+    const searchData = await response.json();
+
+    console.log("searchData:", searchData);
+
+    const searchResults = searchData.items;
+
+    if (!searchResults.length) {
+      console.log("No se encontraron resultados para la búsqueda.");
+      return null;
+    }
+
+    const videoId = searchResults[0].id.videoId;
+    const videoTitle = searchResults[0].snippet.title;
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+    return { videoId, videoTitle, videoUrl };
+  } catch (error) {
+    console.error("Error al buscar en YouTube:", error);
+    return null;
+  }
+}
+
+async function getVideoInfo() {}
+
 const play: Command = {
   name: "play",
   description: "Download and play a song from YouTube",
@@ -13,15 +49,12 @@ const play: Command = {
     const client = ExtendedClient.getInstance();
 
     const linkOption = interaction.options.get("link", true);
-    // console.log('🚀 ~ playCommand ~ linkOption:', linkOption);
+    const query = linkOption.value as string;
 
-    // Asegura que el valor es un string
-    const link = linkOption.value as string;
-    console.log("🚀 ~ playCommand ~ link:", link);
-
-    if (!link) {
-      await interaction.reply("Es necesario un link para la reproducción.");
-
+    if (!query) {
+      await interaction.reply(
+        "Es necesario un término de búsqueda o un enlace para la reproducción."
+      );
       return;
     }
 
@@ -47,13 +80,22 @@ const play: Command = {
     await interaction.deferReply();
 
     try {
-      // Obtiene información del video para el título
-      const videoInfo = await ytdl.getInfo(link);
-      const videoTitle = videoInfo.videoDetails.title;
+      let videoInfo;
+      let videoTitle;
+      let link;
+
+      if (ytdl.validateURL(query)) {
+        // Obtiene información del video para el título
+        videoInfo = await ytdl.getInfo(query);
+        videoTitle = videoInfo.videoDetails.title;
+        link = query;
+      } else {
+        videoInfo = await ytdl.getInfo(videoId);
+      }
 
       const song: QueueSong = {
-        title: videoTitle,
-        url: link,
+        title: videoTitle!,
+        url: link!,
       };
 
       // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
