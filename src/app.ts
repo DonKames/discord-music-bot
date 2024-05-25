@@ -4,6 +4,7 @@ import { loadCommands } from "./utils/loadCommands";
 import { loadEvents } from "./utils/loadEvents";
 import { handleInteraction } from "./utils/handleInteraction";
 import { errorHandler } from "./utils/errorHandler";
+import { Events } from "discord.js";
 
 // Crea una instancia del cliente extendido
 const client = ExtendedClient.getInstance();
@@ -16,7 +17,8 @@ loadCommands(client);
 // Carga los eventos desde el directorio
 loadEvents(client);
 
-client.on("interactionCreate", async (interaction) => {
+// Maneja las interacciones de tipo comando
+client.on(Events.InteractionCreate, async (interaction) => {
   // Asegúrate de que la interacción es un comando antes de manejarla
   if (interaction.isCommand()) {
     handleInteraction(client, interaction);

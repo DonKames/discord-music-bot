@@ -1,28 +1,17 @@
 import { joinVoiceChannel } from "@discordjs/voice";
 
+import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
+import { Command } from "../interfaces/Command";
 import { playSong } from "../utils/musicUtils";
 import { getVideoInfo } from "../utils/youtubeUtils";
-import {
-  CommandInteraction,
-  Interaction,
-  MessageComponentInteraction,
-  SlashCommandBuilder,
-} from "discord.js";
-import { ExtendedClient } from "../ExtendedClient";
+import { Interaction, SelectMenuInteraction } from "discord.js";
 
 // Comando Principal
-const play = {
-  data: new SlashCommandBuilder()
-    .setName("play")
-    .setDescription("Download and play a song from youtube")
-    .addStringOption((option) =>
-      option
-        .setName("link")
-        .setDescription("The YouTube link or search query")
-        .setRequired(true)
-    ),
-  async execute(interaction: CommandInteraction) {
+const play: Command = {
+  name: "play",
+  description: "Download and play a song from YouTube",
+  execute: async (interaction) => {
     const client = ExtendedClient.getInstance();
 
     const linkOption = interaction.options.get("link", true);
@@ -71,8 +60,8 @@ const play = {
           ],
         });
 
-        const filter = (i: MessageComponentInteraction) =>
-          i.isStringSelectMenu() &&
+        const filter = (i: Interaction) =>
+          i.isButton() &&
           i.customId === "select_menu" &&
           i.user.id === interaction.user.id;
 
@@ -80,6 +69,78 @@ const play = {
           filter,
           time: 30000,
           max: 1,
+        });
+
+        collector.on("collect", async (i) => {
+          if ((i as SelectMenuInteraction).values) {
+            const selectedOption = (i as SelectMenuInteraction).values[0];
+
+            const selectedVideoInfo = videoInfo.find(
+              (video) => video.videoUrl === selectedOption
+            );
+
+            if (!selectedVideoInfo) {
+              await interaction.reply(
+                "No se pudo encontrar el video seleccionado."
+              );
+              return;
+            }
+
+            const { videoTitle, videoUrl } = selectedVideoInfo;
+
+            const song: QueueSong = {
+              title: videoTitle,
+              url: videoUrl,
+            };
+
+            if (client.music.isPlaying) {
+              client.music.queue.addToQueue(song);
+              await i.reply(`Añadido a la cola: **${videoTitle}**`);
+            } else {
+              // Verifica que interaction.member y interaction.guild no sean nulos
+              if (
+                !interaction.member ||
+                !interaction.guild ||
+                !interaction.guildId
+              ) {
+                console.error(
+                  "Error: interaction.member o interaction.guild o interaction.guildId es nulo."
+                );
+                return;
+              }
+
+              const member = await interaction.guild.members.fetch(
+                interaction.user.id
+              );
+
+              // Verifica que el miembro esté en un canal de voz
+              if (!member.voice.channelId) {
+                await interaction.reply(
+                  "Debes estar en un canal de voz para usar este comando."
+                );
+                return;
+              }
+
+              const connection = joinVoiceChannel({
+                channelId: member.voice.channelId,
+                guildId: interaction.guildId,
+                adapterCreator: interaction.guild.voiceAdapterCreator,
+              });
+
+              client.music.isPlaying = true;
+              client.music.queue.addToQueue(song);
+              playSong(
+                client,
+                interaction,
+                connection,
+                client.music.queue.getNextItem()!
+              );
+
+              await interaction.followUp(
+                `Reproduciendo ahora: **${selectedVideoInfo.videoTitle}**`
+              );
+            }
+          }
         });
 
         collector.on("end", async (collected, reason) => {
