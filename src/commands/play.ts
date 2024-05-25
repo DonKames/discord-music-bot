@@ -1,36 +1,42 @@
+import ytdl from "ytdl-core";
 import { joinVoiceChannel } from "@discordjs/voice";
 
 import { QueueSong } from "../utils/Music";
 import { playSong } from "../utils/musicUtils";
-import { getVideoInfo } from "../utils/youtubeUtils";
-import {
-  CommandInteraction,
-  Interaction,
-  MessageComponentInteraction,
-  SlashCommandBuilder,
-} from "discord.js";
-import { ExtendedClient } from "../ExtendedClient";
 
-// Comando Principal
-const play = {
-  data: new SlashCommandBuilder()
-    .setName("play")
-    .setDescription("Download and play a song from youtube")
-    .addStringOption((option) =>
-      option
-        .setName("link")
-        .setDescription("The YouTube link or search query")
-        .setRequired(true)
-    ),
-  async execute(interaction: CommandInteraction) {
+const play: Command = {
+  name: "play",
+  description: "Download and play a song from YouTube",
+  execute: async (interaction) => {
     const client = ExtendedClient.getInstance();
 
     const linkOption = interaction.options.get("link", true);
-    const query = linkOption.value as string;
+    // console.log('🚀 ~ playCommand ~ linkOption:', linkOption);
 
-    if (!query) {
+    // Asegura que el valor es un string
+    const link = linkOption.value as string;
+    console.log("🚀 ~ playCommand ~ link:", link);
+
+    if (!link) {
+      await interaction.reply("Es necesario un link para la reproducción.");
+
+      return;
+    }
+
+    // Verifica que interaction.member y interaction.guild no sean nulos
+    if (!interaction.member || !interaction.guild || !interaction.guildId) {
+      console.error(
+        "Error: interaction.member o interaction.guild o interaction.guildId es nulo."
+      );
+      return;
+    }
+
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+
+    // Verifica que el miembro esté en un canal de voz
+    if (!member.voice.channelId) {
       await interaction.reply(
-        "Es necesario un término de búsqueda o un enlace para la reproducción."
+        "Debes estar en un canal de voz para usar este comando."
       );
       return;
     }
@@ -39,65 +45,13 @@ const play = {
     await interaction.deferReply();
 
     try {
-      const videoInfo = await getVideoInfo(query);
-
-      if (!videoInfo) {
-        await interaction.followUp(
-          "No se pudo obtener la información del video."
-        );
-        return;
-      }
-
-      if (Array.isArray(videoInfo)) {
-        const options = videoInfo.map((result, index) => ({
-          label: `${index + 1}. ${result.videoTitle}`,
-          value: result.videoUrl,
-          description: `Opción ${index + 1}`,
-        }));
-
-        await interaction.followUp({
-          content: "Selecciona el video que deseas reproducir:",
-          components: [
-            {
-              type: 1,
-              components: [
-                {
-                  type: 3,
-                  customId: "select_menu",
-                  options,
-                },
-              ],
-            },
-          ],
-        });
-
-        const filter = (i: MessageComponentInteraction) =>
-          i.isStringSelectMenu() &&
-          i.customId === "select_menu" &&
-          i.user.id === interaction.user.id;
-
-        const collector = interaction.channel!.createMessageComponentCollector({
-          filter,
-          time: 30000,
-          max: 1,
-        });
-
-        collector.on("end", async (collected, reason) => {
-          if (reason === "time") {
-            await interaction.followUp(
-              "No se seleccionó ninguna opción a tiempo."
-            );
-          }
-        });
-
-        return;
-      }
-
-      const { videoTitle, videoUrl } = videoInfo;
+      // Obtiene información del video para el título
+      const videoInfo = await ytdl.getInfo(link);
+      const videoTitle = videoInfo.videoDetails.title;
 
       const song: QueueSong = {
         title: videoTitle,
-        url: videoUrl,
+        url: link,
       };
 
       // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
