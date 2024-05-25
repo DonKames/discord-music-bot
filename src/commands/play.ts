@@ -2,15 +2,23 @@ import { joinVoiceChannel } from "@discordjs/voice";
 
 import { QueueSong } from "../utils/Music";
 import { playSong } from "../utils/musicUtils";
-import { Command } from "../interfaces/Command";
 import { ExtendedClient } from "../ExtendedClient";
 import { getVideoInfo } from "../utils/youtubeUtils";
+import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 
-const play: Command = {
-  name: "play",
-  description: "Download and play a song from YouTube",
-  execute: async (interaction) => {
-    const client = interaction.client as ExtendedClient;
+const play = {
+  data: new SlashCommandBuilder()
+    .setName("play")
+    .setDescription("Download and play a song from YouTube.")
+    .addStringOption((option) =>
+      option
+        .setName("link")
+        .setDescription("The YouTube link or search query")
+        .setRequired(true)
+    ),
+  async execute(interaction: CommandInteraction) {
+    console.log("PlayCommand");
+    const client = ExtendedClient.getInstance();
 
     const linkOption = interaction.options.get("link", true);
     console.log("🚀 ~ playCommand ~ linkOption:", linkOption);
