@@ -1,13 +1,13 @@
-import { CommandInteraction } from "discord.js";
-import { Command } from "../interfaces/Command";
+import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 import { ExtendedClient } from "../ExtendedClient";
 import { getVoiceConnection } from "@discordjs/voice";
 
-const stop: Command = {
-  name: "stop",
-  description: "Detiene la reproducción y detiene y expulsa al bot",
-  execute: async (interaction: CommandInteraction) => {
-    const client = interaction.client as ExtendedClient;
+const stop = {
+  data: new SlashCommandBuilder()
+    .setName("stop")
+    .setDescription("Detiene la reproducción y detiene y expulsa al bot"),
+  async execute(interaction: CommandInteraction) {
+    const client = ExtendedClient.getInstance();
 
     // Verifica que interaction.member y interaction.guild no sean nulos
     if (!interaction.member || !interaction.guild || !interaction.guildId) {
