@@ -3,6 +3,8 @@ import { joinVoiceChannel } from "@discordjs/voice";
 
 import { QueueSong } from "../utils/Music";
 import { playSong } from "../utils/musicUtils";
+import { Command } from "../interfaces/Command";
+import { ExtendedClient } from "../ExtendedClient";
 
 const play: Command = {
   name: "play",
@@ -11,7 +13,7 @@ const play: Command = {
     const client = interaction.client as ExtendedClient;
 
     const linkOption = interaction.options.get("link", true);
-    // console.log('🚀 ~ playCommand ~ linkOption:', linkOption);
+    console.log("🚀 ~ playCommand ~ linkOption:", linkOption);
 
     // Asegura que el valor es un string
     const link = linkOption.value as string;
