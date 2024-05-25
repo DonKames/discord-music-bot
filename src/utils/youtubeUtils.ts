@@ -45,7 +45,7 @@ export async function searchYouTube(
 
 export async function getVideoInfo(
   query: string
-): Promise<{ videoTitle: string; videoUrl: string }[] | null> {
+): Promise<{ videoTitle: string; videoUrl: string } | null> {
   try {
     let videoInfo, videoTitle, videoUrl;
 
@@ -54,7 +54,7 @@ export async function getVideoInfo(
       videoInfo = await ytdl.getInfo(query);
       videoTitle = videoInfo.videoDetails.title;
       videoUrl = query;
-      return [{ videoTitle, videoUrl }];
+      return { videoTitle, videoUrl };
     } else {
       const searchResults = await searchYouTube(query);
 
@@ -63,7 +63,7 @@ export async function getVideoInfo(
         return null;
       }
 
-      return searchResults;
+      return searchResults[0];
     }
   } catch (error) {
     console.log("🚀 ~ getVideoInfo ~ error:", error);

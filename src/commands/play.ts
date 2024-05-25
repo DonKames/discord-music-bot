@@ -1,10 +1,10 @@
-import ytdl from "ytdl-core";
 import { joinVoiceChannel } from "@discordjs/voice";
 
 import { QueueSong } from "../utils/Music";
 import { playSong } from "../utils/musicUtils";
 import { Command } from "../interfaces/Command";
 import { ExtendedClient } from "../ExtendedClient";
+import { getVideoInfo } from "../utils/youtubeUtils";
 
 const play: Command = {
   name: "play",
@@ -16,11 +16,13 @@ const play: Command = {
     console.log("🚀 ~ playCommand ~ linkOption:", linkOption);
 
     // Asegura que el valor es un string
-    const link = linkOption.value as string;
-    console.log("🚀 ~ playCommand ~ link:", link);
+    const query = linkOption.value as string;
+    console.log("🚀 ~ playCommand ~ link:", query);
 
-    if (!link) {
-      await interaction.reply("Es necesario un link para la reproducción.");
+    if (!query) {
+      await interaction.reply(
+        "Es necesario un término de búsqueda o un enlace para la reproducción."
+      );
 
       return;
     }
@@ -48,12 +50,20 @@ const play: Command = {
 
     try {
       // Obtiene información del video para el título
-      const videoInfo = await ytdl.getInfo(link);
-      const videoTitle = videoInfo.videoDetails.title;
+      const videoInfo = await getVideoInfo(query);
+
+      if (!videoInfo) {
+        await interaction.followUp(
+          "No se pudo obtener la información del video."
+        );
+        return;
+      }
+
+      const { videoTitle, videoUrl } = videoInfo;
 
       const song: QueueSong = {
         title: videoTitle,
-        url: link,
+        url: videoUrl,
       };
 
       // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
