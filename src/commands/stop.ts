@@ -7,7 +7,7 @@ const stop: Command = {
   name: "stop",
   description: "Detiene la reproducción y detiene y expulsa al bot",
   execute: async (interaction: CommandInteraction) => {
-    const client = ExtendedClient.getInstance();
+    const client = interaction.client as ExtendedClient;
 
     // Verifica que interaction.member y interaction.guild no sean nulos
     if (!interaction.member || !interaction.guild || !interaction.guildId) {

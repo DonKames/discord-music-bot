@@ -11,7 +11,7 @@ const next: Command = {
   name: "next",
   description: "Skip to the next song in the queue",
   execute: async (interaction: CommandInteraction) => {
-    const client = ExtendedClient.getInstance();
+    const client = interaction.client as ExtendedClient;
 
     if (!client.music || client.music.queue.songs.length === 0) {
       await interaction.reply("No hay canciones en la cola de reproducción.");
