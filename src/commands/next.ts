@@ -1,17 +1,17 @@
-import { CommandInteraction } from "discord.js";
+import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import { getVoiceConnection } from "@discordjs/voice";
 
-import { Command } from "../interfaces/Command";
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
 import { playSong } from "../utils/musicUtils";
-import { getVoiceConnection } from "@discordjs/voice";
 import { errorHandler } from "../utils/errorHandler";
 
-const next: Command = {
-  name: "next",
-  description: "Skip to the next song in the queue",
-  execute: async (interaction: CommandInteraction) => {
-    const client = interaction.client as ExtendedClient;
+const next = {
+  data: new SlashCommandBuilder()
+    .setName("next")
+    .setDescription("Skips the current song"),
+  async execute(interaction: CommandInteraction) {
+    const client = ExtendedClient.getInstance();
 
     if (!client.music || client.music.queue.songs.length === 0) {
       await interaction.reply("No hay canciones en la cola de reproducción.");
