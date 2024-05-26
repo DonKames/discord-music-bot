@@ -1,10 +1,10 @@
 import { joinVoiceChannel } from "@discordjs/voice";
+import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 
+import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
 import { playSong } from "../utils/musicUtils";
-import { ExtendedClient } from "../ExtendedClient";
 import { getVideoInfo } from "../utils/youtubeUtils";
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 
 const play = {
   data: new SlashCommandBuilder()
@@ -41,6 +41,11 @@ const play = {
         console.error(
           "Error: interaction.member o interaction.guild o interaction.guildId es nulo."
         );
+
+        await interaction.reply(
+          "Ha ocurrido un error al intentar reproducir la canción."
+        );
+
         return;
       }
 
@@ -77,7 +82,7 @@ const play = {
       // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
       if (client.music.isPlaying) {
         client.music.queue.addToQueue(song);
-        await interaction.reply(`Añadido a la cola: **${videoTitle}**`);
+        await interaction.followUp(`Añadido a la cola: **${videoTitle}**`);
       } else {
         // Si no hay música reproduciéndose, comienza a reproducir y establece el estado a reproduciendo
         const connection = joinVoiceChannel({
