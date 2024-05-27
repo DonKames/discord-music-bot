@@ -1,10 +1,18 @@
 import { joinVoiceChannel } from "@discordjs/voice";
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  ActionRowBuilder,
+  CommandInteraction,
+  SlashCommandBuilder,
+  StringSelectMenuBuilder,
+  StringSelectMenuInteraction,
+} from "discord.js";
 
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
 import { playSong } from "../utils/musicUtils";
-import { getVideoInfo } from "../utils/youtubeUtils";
+import { searchYouTube } from "../utils/youtubeUtils";
+import { validateInteractionGuildAndMember } from "../utils/interactionUtils";
+import ytdl from "ytdl-core";
 
 const play = {
   data: new SlashCommandBuilder()
@@ -25,7 +33,7 @@ const play = {
       console.log("🚀 ~ playCommand ~ linkOption:", linkOption);
 
       // Asegura que el valor es un string
-      const query = linkOption.value as string;
+      let query = linkOption.value as string;
       console.log("🚀 ~ playCommand ~ link:", query);
 
       if (!query) {
@@ -36,43 +44,79 @@ const play = {
         return;
       }
 
-      // Verifica que interaction.member y interaction.guild no sean nulos
-      if (!interaction.member || !interaction.guild || !interaction.guildId) {
-        console.error(
-          "Error: interaction.member o interaction.guild o interaction.guildId es nulo."
-        );
-
-        await interaction.reply(
-          "Ha ocurrido un error al intentar reproducir la canción."
-        );
-
-        return;
-      }
-
-      const member = await interaction.guild.members.fetch(interaction.user.id);
-
-      // Verifica que el miembro esté en un canal de voz
-      if (!member.voice.channelId) {
-        await interaction.reply(
-          "Debes estar en un canal de voz para usar este comando."
-        );
+      // Valida si el miembro está en un canal de voz y si interaction.member, interaction.guild y interaction.guildId no son nulos
+      const member = await validateInteractionGuildAndMember(interaction);
+      if (member === false) {
         return;
       }
 
       // Responder de forma diferida
       await interaction.deferReply();
 
-      // Obtiene información del video para el título
-      const videoInfo = await getVideoInfo(query);
+      // let videoInfo, videoTitle, videoUrl;
 
-      if (!videoInfo) {
+      // Verificar si es un termino de búsqueda o un link
+      if (!ytdl.validateURL(query)) {
+        // En caso de que sea un termino de búsqueda.
+        const searchResults = await searchYouTube(query);
+
+        if (!searchResults) {
+          await interaction.followUp(
+            "No se encontraron resultados para la búsqueda."
+          );
+          return;
+        }
+
+        const selectMenu = new StringSelectMenuBuilder()
+          .setCustomId("searchSelect")
+          .setPlaceholder("Selecciona una opción")
+          .addOptions(
+            searchResults.map((video) => ({
+              label: video.videoTitle,
+              value: video.videoUrl,
+            }))
+          );
+
+        const actionRow =
+          new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+            selectMenu
+          );
+
+        const searchSongResponse = await interaction.followUp({
+          content:
+            "Se encontraron varios resultados. Elige uno para reproducir:",
+          components: [actionRow],
+        });
+
+        const collectorFilter = (i: any) => i.user.id === interaction.user.id;
+
+        try {
+          const songSelected = (await searchSongResponse.awaitMessageComponent({
+            filter: collectorFilter,
+            time: 20_000,
+          })) as StringSelectMenuInteraction;
+
+          query = songSelected.values[0];
+        } catch (error) {
+          console.log("🚀 ~ execute ~ error:", error);
+
+          await interaction.editReply({
+            content: "Canción no seleccionada.",
+            components: [],
+          });
+        }
+      }
+
+      const videoInfo = await ytdl.getInfo(query);
+      const videoTitle = videoInfo.videoDetails.title;
+      const videoUrl = query;
+
+      if (!videoInfo || !videoTitle || !videoUrl) {
         await interaction.followUp(
           "No se pudo obtener la información del video."
         );
         return;
       }
-
-      const { videoTitle, videoUrl } = videoInfo;
 
       const song: QueueSong = {
         title: videoTitle,
@@ -87,8 +131,8 @@ const play = {
         // Si no hay música reproduciéndose, comienza a reproducir y establece el estado a reproduciendo
         const connection = joinVoiceChannel({
           channelId: member.voice.channelId,
-          guildId: interaction.guildId,
-          adapterCreator: interaction.guild.voiceAdapterCreator,
+          guildId: interaction.guildId!,
+          adapterCreator: interaction.guild!.voiceAdapterCreator,
         });
 
         client.music.isPlaying = true;
@@ -100,7 +144,7 @@ const play = {
           client.music.queue.getNextItem()!
         );
 
-        await interaction.followUp(`Reproduciendo ahora: **${videoTitle}**`);
+        // await interaction.followUp(`Reproduciendo ahora: **${videoTitle}**`);
       }
     } catch (error) {
       console.error("Error al procesar el comando 'play':", error);

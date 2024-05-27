@@ -1,3 +1,4 @@
+import { CommandInteraction } from "discord.js";
 import "dotenv/config";
 import ytdl from "ytdl-core";
 
@@ -21,8 +22,6 @@ export async function searchYouTube(
     const response = await fetch(searchUrl);
     const searchData = await response.json();
 
-    console.log("searchData:", searchData);
-
     const searchResults = searchData.items;
 
     if (!searchResults.length) {
@@ -44,27 +43,24 @@ export async function searchYouTube(
 }
 
 export async function getVideoInfo(
-  query: string
+  interaction: CommandInteraction,
+  link: string
 ): Promise<{ videoTitle: string; videoUrl: string } | null> {
   try {
-    let videoInfo, videoTitle, videoUrl;
+    // Obtiene información del video para el título
+    const videoInfo = await ytdl.getInfo(link);
 
-    if (ytdl.validateURL(query)) {
-      // Obtiene información del video para el título
-      videoInfo = await ytdl.getInfo(query);
-      videoTitle = videoInfo.videoDetails.title;
-      videoUrl = query;
-      return { videoTitle, videoUrl };
-    } else {
-      const searchResults = await searchYouTube(query);
-
-      if (!searchResults) {
-        console.log("No se encontraron resultados para la búsqueda.");
-        return null;
-      }
-
-      return searchResults[0];
+    if (!videoInfo) {
+      await interaction.followUp(
+        "No se pudo obtener la información del video."
+      );
+      // return null;
     }
+
+    const videoTitle = videoInfo.videoDetails.title;
+    const videoUrl = link;
+
+    return { videoTitle, videoUrl };
   } catch (error) {
     console.log("🚀 ~ getVideoInfo ~ error:", error);
     return null;
