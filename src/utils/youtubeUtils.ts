@@ -1,6 +1,4 @@
-import { CommandInteraction } from "discord.js";
 import "dotenv/config";
-import ytdl from "ytdl-core";
 
 /**
  * The function `searchYouTube` asynchronously searches YouTube for videos based on a query and returns
@@ -38,31 +36,6 @@ export async function searchYouTube(
     return videos;
   } catch (error) {
     console.error("Error al buscar en YouTube:", error);
-    return null;
-  }
-}
-
-export async function getVideoInfo(
-  interaction: CommandInteraction,
-  link: string
-): Promise<{ videoTitle: string; videoUrl: string } | null> {
-  try {
-    // Obtiene información del video para el título
-    const videoInfo = await ytdl.getInfo(link);
-
-    if (!videoInfo) {
-      await interaction.followUp(
-        "No se pudo obtener la información del video."
-      );
-      // return null;
-    }
-
-    const videoTitle = videoInfo.videoDetails.title;
-    const videoUrl = link;
-
-    return { videoTitle, videoUrl };
-  } catch (error) {
-    console.log("🚀 ~ getVideoInfo ~ error:", error);
     return null;
   }
 }
