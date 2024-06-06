@@ -2,6 +2,7 @@ import {
   ActionRowBuilder,
   CommandInteraction,
   StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from "discord.js";
 import { searchYouTube } from "./youtubeUtils";
 
@@ -36,10 +37,12 @@ export async function searchResultMenuActionRow(
       .setCustomId("searchSelect")
       .setPlaceholder("Selecciona una opción")
       .addOptions(
-        searchResults.map((video) => ({
-          label: video.videoTitle,
-          value: video.videoUrl,
-        }))
+        searchResults.map((video) =>
+          new StringSelectMenuOptionBuilder()
+            .setLabel(video.videoTitle)
+            // .setDescription(video.videoTitle)
+            .setValue(video.videoUrl)
+        )
       );
 
     const actionRow =

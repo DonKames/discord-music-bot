@@ -55,6 +55,8 @@ const play = {
 
       // let videoInfo, videoTitle, videoUrl;
 
+      let songInfo;
+
       // Verificar si es un termino de búsqueda o un link
       if (!ytdl.validateURL(query)) {
         // En caso de que sea un termino de búsqueda.
@@ -75,8 +77,20 @@ const play = {
             time: 20_000,
           })) as StringSelectMenuInteraction;
 
+          console.log("🚀 ~ execute ~ songSelected:", songSelected);
+
           // Almacena la selección del usuario, devolviendo el link de youtube.
           query = songSelected.values[0];
+
+          songInfo = await fetchSongInfo(query, interaction);
+          console.log("🚀 ~ execute ~ songInfo:", songInfo);
+
+          songSelected.reply({
+            content: `Canción seleccionada: ${query}`,
+            components: [],
+          });
+
+          console.log("🚀 ~ execute ~ query:", query);
         } catch (error) {
           console.log("🚀 ~ execute ~ error:", error);
 
@@ -87,9 +101,11 @@ const play = {
         }
       }
 
-      const songInfo = await fetchSongInfo(query, interaction);
+      songInfo = await fetchSongInfo(query, interaction);
 
       if (!songInfo) {
+        await interaction.followUp(`No hay songInfo`);
+
         return;
       }
 
@@ -109,14 +125,13 @@ const play = {
 
         client.music.isPlaying = true;
         client.music.queue.addToQueue(song);
+
         playSong(
           client,
           interaction,
           connection,
           client.music.queue.getNextItem()!
         );
-
-        // await interaction.followUp(`Reproduciendo ahora: **${videoTitle}**`);
       }
     } catch (error) {
       console.error("Error al procesar el comando 'play':", error);
