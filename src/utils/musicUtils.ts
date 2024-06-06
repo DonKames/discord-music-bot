@@ -101,3 +101,44 @@ export function pauseSong(interaction: CommandInteraction) {
     }
   } catch (error) {}
 }
+
+// Función para obtener info de la canción y preparar el QueueSong
+/**
+ * The function `fetchSongInfo` fetches information about a song from a given link and returns a
+ * `QueueSong` object or null.
+ * @param {string} link - The `link` parameter is a string that represents the URL of a video that you
+ * want to fetch information for.
+ * @param {CommandInteraction} interaction - The `interaction` parameter in the `fetchSongInfo`
+ * function is of type `CommandInteraction`. This parameter likely represents an interaction with a
+ * command in a Discord bot application. It can be used to access information about the interaction,
+ * such as the user who triggered the command, the channel where the command
+ * @returns The `fetchSongInfo` function returns a Promise that resolves to either a `QueueSong` object
+ * containing the title and URL of the song, or `null` if there was an error or if the video
+ * information could not be obtained.
+ */
+export async function fetchSongInfo(
+  link: string,
+  interaction: CommandInteraction
+): Promise<QueueSong | null> {
+  try {
+    const videoInfo = await ytdl.getInfo(link);
+    const videoTitle = videoInfo.videoDetails.title;
+
+    if (!videoInfo || !videoTitle) {
+      await interaction.followUp(
+        "No se pudo obtener la información del video."
+      );
+      return null;
+    }
+
+    const song: QueueSong = {
+      title: videoTitle,
+      url: link,
+    };
+
+    return song;
+  } catch (error) {
+    console.log("🚀 ~ fetchSongInfo ~ error:", error);
+    return null;
+  }
+}

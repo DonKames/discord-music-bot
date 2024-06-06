@@ -1,16 +1,13 @@
 import { joinVoiceChannel } from "@discordjs/voice";
 import {
-  ActionRowBuilder,
   CommandInteraction,
   SlashCommandBuilder,
-  StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from "discord.js";
 
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
-import { playSong } from "../utils/musicUtils";
-import { searchYouTube } from "../utils/youtubeUtils";
+import { fetchSongInfo, playSong } from "../utils/musicUtils";
 import {
   searchResultMenuActionRow,
   validateInteractionGuildAndMember,
@@ -61,7 +58,6 @@ const play = {
       // Verificar si es un termino de búsqueda o un link
       if (!ytdl.validateURL(query)) {
         // En caso de que sea un termino de búsqueda.
-
         const searchSongResponse = await searchResultMenuActionRow(
           interaction,
           query
@@ -79,6 +75,7 @@ const play = {
             time: 20_000,
           })) as StringSelectMenuInteraction;
 
+          // Almacena la selección del usuario, devolviendo el link de youtube.
           query = songSelected.values[0];
         } catch (error) {
           console.log("🚀 ~ execute ~ error:", error);
@@ -90,26 +87,18 @@ const play = {
         }
       }
 
-      const videoInfo = await ytdl.getInfo(query);
-      const videoTitle = videoInfo.videoDetails.title;
-      const videoUrl = query;
+      const songInfo = await fetchSongInfo(query, interaction);
 
-      if (!videoInfo || !videoTitle || !videoUrl) {
-        await interaction.followUp(
-          "No se pudo obtener la información del video."
-        );
+      if (!songInfo) {
         return;
       }
 
-      const song: QueueSong = {
-        title: videoTitle,
-        url: videoUrl,
-      };
+      const song: QueueSong = songInfo;
 
       // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
       if (client.music.isPlaying) {
         client.music.queue.addToQueue(song);
-        await interaction.followUp(`Añadido a la cola: **${videoTitle}**`);
+        await interaction.followUp(`Añadido a la cola: **${song.title}**`);
       } else {
         // Si no hay música reproduciéndose, comienza a reproducir y establece el estado a reproduciendo
         const connection = joinVoiceChannel({
