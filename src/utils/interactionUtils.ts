@@ -1,6 +1,61 @@
-import { CommandInteraction, GuildMember } from "discord.js";
+import {
+  ActionRowBuilder,
+  CommandInteraction,
+  StringSelectMenuBuilder,
+} from "discord.js";
+import { searchYouTube } from "./youtubeUtils";
 
-export function searchResultMenuActionRow() {}
+/**
+ * The function `searchResultMenuActionRow` handles searching YouTube for a query, displaying search
+ * results in a select menu for user selection.
+ * @param {CommandInteraction} interaction - The `interaction` parameter in the
+ * `searchResultMenuActionRow` function is of type `CommandInteraction`. This parameter represents the
+ * interaction that triggered the command, such as a slash command interaction in a Discord bot. It
+ * contains information about the user, the command invoked, and any options or arguments provided
+ * @param {string} query - The `query` parameter in the `searchResultMenuActionRow` function is a
+ * string that represents the search query used to search for YouTube videos. This query is passed as
+ * an argument to the function to retrieve search results based on the user's input.
+ * @returns The `searchSongResponse` variable is being returned from the `searchResultMenuActionRow`
+ * function.
+ */
+export async function searchResultMenuActionRow(
+  interaction: CommandInteraction,
+  query: string
+) {
+  try {
+    const searchResults = await searchYouTube(query);
+
+    if (!searchResults) {
+      await interaction.followUp(
+        "No se encontraron resultados para la búsqueda."
+      );
+      return;
+    }
+
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId("searchSelect")
+      .setPlaceholder("Selecciona una opción")
+      .addOptions(
+        searchResults.map((video) => ({
+          label: video.videoTitle,
+          value: video.videoUrl,
+        }))
+      );
+
+    const actionRow =
+      new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
+
+    const searchSongResponse = await interaction.followUp({
+      content: "Se encontraron varios resultados. Elige uno para reproducir:",
+      components: [actionRow],
+    });
+
+    return searchSongResponse;
+  } catch (error) {
+    console.log("🚀 ~ searchResultMenuActionRow ~ error:", error);
+    await interaction.followUp("Hubo un error al procesar la búsqueda.");
+  }
+}
 
 /**
  * The function `validateInteractionGuildAndMember` checks if the necessary properties are present in a

@@ -11,7 +11,10 @@ import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
 import { playSong } from "../utils/musicUtils";
 import { searchYouTube } from "../utils/youtubeUtils";
-import { validateInteractionGuildAndMember } from "../utils/interactionUtils";
+import {
+  searchResultMenuActionRow,
+  validateInteractionGuildAndMember,
+} from "../utils/interactionUtils";
 import ytdl from "ytdl-core";
 
 const play = {
@@ -58,35 +61,15 @@ const play = {
       // Verificar si es un termino de búsqueda o un link
       if (!ytdl.validateURL(query)) {
         // En caso de que sea un termino de búsqueda.
-        const searchResults = await searchYouTube(query);
 
-        if (!searchResults) {
-          await interaction.followUp(
-            "No se encontraron resultados para la búsqueda."
-          );
+        const searchSongResponse = await searchResultMenuActionRow(
+          interaction,
+          query
+        );
+
+        if (!searchSongResponse) {
           return;
         }
-
-        const selectMenu = new StringSelectMenuBuilder()
-          .setCustomId("searchSelect")
-          .setPlaceholder("Selecciona una opción")
-          .addOptions(
-            searchResults.map((video) => ({
-              label: video.videoTitle,
-              value: video.videoUrl,
-            }))
-          );
-
-        const actionRow =
-          new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-            selectMenu
-          );
-
-        const searchSongResponse = await interaction.followUp({
-          content:
-            "Se encontraron varios resultados. Elige uno para reproducir:",
-          components: [actionRow],
-        });
 
         const collectorFilter = (i: any) => i.user.id === interaction.user.id;
 
