@@ -49,35 +49,4 @@ export async function searchYouTube(
   }
 }
 
-// export async function searchYouTube(
-//   query: string
-// ): Promise<{ videoId: string; videoTitle: string; videoUrl: string }[] | null> {
-//   try {
-//     const searchUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_TOKEN}&part=snippet&q=${encodeURIComponent(
-//       query
-//     )}&type=video`;
-
-//     const response = await fetch(searchUrl);
-//     const searchData = await response.json();
-
-//     const searchResults = searchData.items;
-
-//     if (!searchResults.length) {
-//       console.log("No se encontraron resultados para la búsqueda.");
-//       return null;
-//     }
-
-//     const videos = searchResults.map((video: any) => ({
-//       videoId: video.id.videoId,
-//       videoTitle: video.snippet.title,
-//       videoUrl: `https://www.youtube.com/watch?v=${video.id.videoId}`,
-//     }));
-
-//     return videos;
-//   } catch (error) {
-//     console.error("Error al buscar en YouTube:", error);
-//     return null;
-//   }
-// }
-
 const YOUTUBE_TOKEN = process.env.YOUTUBE_KEY;
