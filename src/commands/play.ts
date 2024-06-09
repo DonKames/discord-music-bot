@@ -7,7 +7,12 @@ import {
 
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
-import { fetchSongInfo, playSong } from "../utils/musicUtils";
+import {
+  extractPlaylistId,
+  fetchPlaylistSongs,
+  fetchSongInfo,
+  playSong,
+} from "../utils/musicUtils";
 import {
   searchResultMenuActionRow,
   validateInteractionGuildAndMember,
@@ -30,11 +35,11 @@ const play = {
 
     try {
       const linkOption = interaction.options.get("link", true);
-      console.log("🚀 ~ playCommand ~ linkOption:", linkOption);
+      // console.log("🚀 ~ playCommand ~ linkOption:", linkOption);
 
       // Asegura que el valor es un string
       let query = linkOption.value as string;
-      console.log("🚀 ~ playCommand ~ link:", query);
+      // console.log("🚀 ~ playCommand ~ link:", query);
 
       if (!query) {
         await interaction.reply(
@@ -100,6 +105,32 @@ const play = {
           });
         }
       }
+
+      // // TODO: Check the correct flow on normal link and playlist link
+      // // Verificar si el enlace es una lista de reproducción
+      // if (ytdl.validateURL(query) && query.includes("list=")) {
+      //   const playlistSongs = await fetchPlaylistSongs(query);
+
+      //   if (playlistSongs.length === 0) {
+      //     await interaction.followUp(
+      //       "No se encontraron canciones en la lista de reproducción."
+      //     );
+
+      //     return;
+      //   }
+
+      //   for (const song of playlistSongs) {
+      //     client.music.queue.addToQueue(song);
+      //   }
+
+      //   await interaction.followUp(
+      //     `Añadido a la cola ${playlistSongs.length} canciones de una lista de reproducción`
+      //   );
+      // }
+
+      // const playlistId = extractPlaylistId(query);
+      // console.log("🚀 ~ execute ~ query:", query);
+      // console.log("🚀 ~ execute ~ list:", playlistId);
 
       songInfo = await fetchSongInfo(query, interaction);
 

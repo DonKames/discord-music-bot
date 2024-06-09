@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { CommandInteraction } from "discord.js";
 import { VoiceConnection, createAudioResource } from "@discordjs/voice";
 import ytdl from "ytdl-core";
@@ -8,6 +10,7 @@ import { promisify } from "util";
 import { Music, QueueSong } from "./Music";
 import { ExtendedClient } from "../ExtendedClient";
 import { errorHandler } from "./errorHandler";
+import { google } from "googleapis";
 
 const writeFileAsync = promisify(fs.writeFile);
 const unlinkAsync = promisify(fs.unlink);
@@ -140,5 +143,70 @@ export async function fetchSongInfo(
   } catch (error) {
     console.log("🚀 ~ fetchSongInfo ~ error:", error);
     return null;
+  }
+}
+
+export function extractPlaylistId(url: string): string | null {
+  const regex = /[&?]list=([a-zA-Z0-9_-]+)/;
+  const match = url.match(regex);
+
+  return match ? match[1] : null;
+}
+
+export async function fetchPlaylistSongs(
+  playlistUrl: string
+): Promise<QueueSong[]> {
+  try {
+    const playlistId = extractPlaylistId(playlistUrl);
+
+    if (!playlistId) {
+      return [];
+    }
+
+    const auth = process.env.YOUTUBE_KEY;
+    console.log("🚀 ~ auth:", auth);
+
+    const youtube = google.youtube({
+      version: "v3",
+      auth,
+    });
+
+    let nextPageToken: string | undefined;
+
+    const songs: QueueSong[] = [];
+
+    do {
+      const response = await youtube.playlistItems.list({
+        playlistId,
+        part: ["snippet"],
+        maxResults: 50,
+        pageToken: nextPageToken,
+      });
+
+      const items = response.data.items;
+      if (items) {
+        for (const item of items) {
+          const title = item.snippet?.title;
+          const videoId = item.snippet?.resourceId?.videoId;
+
+          if (title && videoId) {
+            songs.push({
+              title,
+              url: `https://www.youtube.com/watch?v=${videoId}`,
+            });
+          }
+        }
+      }
+
+      nextPageToken = response.data.nextPageToken!;
+    } while (nextPageToken);
+
+    return songs;
+  } catch (error) {
+    console.log(
+      "🚀 ~ Error al obtener las canciones de la lista de reproducción:",
+      error
+    );
+    return [];
   }
 }
