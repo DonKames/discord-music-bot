@@ -34,6 +34,7 @@ const play = {
     const client = ExtendedClient.getInstance();
 
     try {
+      // Para todos los flujos
       const linkOption = interaction.options.get("link", true);
       // console.log("🚀 ~ playCommand ~ linkOption:", linkOption);
 
@@ -62,49 +63,54 @@ const play = {
 
       let songInfo;
 
-      // Verificar si es un termino de búsqueda o un link
       if (!ytdl.validateURL(query)) {
-        // En caso de que sea un termino de búsqueda.
-        const searchSongResponse = await searchResultMenuActionRow(
-          interaction,
-          query
-        );
-
-        if (!searchSongResponse) {
-          return;
-        }
-
-        const collectorFilter = (i: any) => i.user.id === interaction.user.id;
-
-        try {
-          const songSelected = (await searchSongResponse.awaitMessageComponent({
-            filter: collectorFilter,
-            time: 20_000,
-          })) as StringSelectMenuInteraction;
-
-          console.log("🚀 ~ execute ~ songSelected:", songSelected);
-
-          // Almacena la selección del usuario, devolviendo el link de youtube.
-          query = songSelected.values[0];
-
-          songInfo = await fetchSongInfo(query, interaction);
-          console.log("🚀 ~ execute ~ songInfo:", songInfo);
-
-          songSelected.reply({
-            content: `Canción seleccionada: ${query}`,
-            components: [],
-          });
-
-          console.log("🚀 ~ execute ~ query:", query);
-        } catch (error) {
-          console.log("🚀 ~ execute ~ error:", error);
-
-          await interaction.editReply({
-            content: "Canción no seleccionada.",
-            components: [],
-          });
+        if (query.includes("list=")) {
         }
       }
+      // !Working
+      // // Verificar si es un termino de búsqueda o un link
+      // if (!ytdl.validateURL(query)) {
+      //   // En caso de que sea un termino de búsqueda.
+      //   const searchSongResponse = await searchResultMenuActionRow(
+      //     interaction,
+      //     query
+      //   );
+
+      //   if (!searchSongResponse) {
+      //     return;
+      //   }
+
+      //   const collectorFilter = (i: any) => i.user.id === interaction.user.id;
+
+      //   try {
+      //     const songSelected = (await searchSongResponse.awaitMessageComponent({
+      //       filter: collectorFilter,
+      //       time: 20_000,
+      //     })) as StringSelectMenuInteraction;
+
+      //     console.log("🚀 ~ execute ~ songSelected:", songSelected);
+
+      //     // Almacena la selección del usuario, devolviendo el link de youtube.
+      //     query = songSelected.values[0];
+
+      //     songInfo = await fetchSongInfo(query, interaction);
+      //     console.log("🚀 ~ execute ~ songInfo:", songInfo);
+
+      //     songSelected.reply({
+      //       content: `Canción seleccionada: ${query}`,
+      //       components: [],
+      //     });
+
+      //     console.log("🚀 ~ execute ~ query:", query);
+      //   } catch (error) {
+      //     console.log("🚀 ~ execute ~ error:", error);
+
+      //     await interaction.editReply({
+      //       content: "Canción no seleccionada.",
+      //       components: [],
+      //     });
+      //   }
+      // }
 
       // // TODO: Check the correct flow on normal link and playlist link
       // // Verificar si el enlace es una lista de reproducción
