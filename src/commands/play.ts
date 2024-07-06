@@ -63,11 +63,34 @@ const play = {
 
       let songInfo;
 
-      if (!ytdl.validateURL(query)) {
-        if (query.includes("list=")) {
+      console.log(query);
+
+      if (ytdl.validateURL(query)) {
+        if (!query.includes("list=")) {
+          songInfo = await fetchSongInfo(query, interaction);
+
+          console.log("no incluye lista");
+          if (!songInfo) {
+            await interaction.followUp(`No hay songInfo`);
+            return;
+          }
+
+          const song: QueueSong = songInfo;
+
+          if (client.music.isPlaying) {
+            client.music.queue.addToQueue(song);
+            await interaction.followUp(`Añadido a la cola: **${song.title}**`);
+          } else {
+          }
+          return;
+        } else {
           console.log("incluye lista");
         }
+      } else {
+        console.log("no es un URL valido, buscar termino");
+        return;
       }
+
       // !Working
       // // Verificar si es un termino de búsqueda o un link
       // if (!ytdl.validateURL(query)) {
