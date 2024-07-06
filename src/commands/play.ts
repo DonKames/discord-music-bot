@@ -65,6 +65,7 @@ const play = {
 
       if (!ytdl.validateURL(query)) {
         if (query.includes("list=")) {
+          console.log("incluye lista");
         }
       }
       // !Working
