@@ -81,10 +81,26 @@ const play = {
             client.music.queue.addToQueue(song);
             await interaction.followUp(`Añadido a la cola: **${song.title}**`);
           } else {
+            const connection = joinVoiceChannel({
+              channelId: member.voice.channelId,
+              guildId: interaction.guildId!,
+              adapterCreator: interaction.guild!.voiceAdapterCreator,
+            });
+
+            client.music.isPlaying = true;
+            client.music.queue.addToQueue(song);
+
+            playSong(
+              client,
+              interaction,
+              connection,
+              client.music.queue.getNextItem()!
+            );
           }
           return;
         } else {
           console.log("incluye lista");
+          return;
         }
       } else {
         console.log("no es un URL valido, buscar termino");
@@ -162,38 +178,38 @@ const play = {
       // console.log("🚀 ~ execute ~ query:", query);
       // console.log("🚀 ~ execute ~ list:", playlistId);
 
-      songInfo = await fetchSongInfo(query, interaction);
+      // songInfo = await fetchSongInfo(query, interaction);
 
-      if (!songInfo) {
-        await interaction.followUp(`No hay songInfo`);
+      // if (!songInfo) {
+      //   await interaction.followUp(`No hay songInfo`);
 
-        return;
-      }
+      //   return;
+      // }
 
-      const song: QueueSong = songInfo;
+      // const song: QueueSong = songInfo;
 
-      // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
-      if (client.music.isPlaying) {
-        client.music.queue.addToQueue(song);
-        await interaction.followUp(`Añadido a la cola: **${song.title}**`);
-      } else {
-        // Si no hay música reproduciéndose, comienza a reproducir y establece el estado a reproduciendo
-        const connection = joinVoiceChannel({
-          channelId: member.voice.channelId,
-          guildId: interaction.guildId!,
-          adapterCreator: interaction.guild!.voiceAdapterCreator,
-        });
+      // // Si ya hay música reproduciéndose, añade a la cola y notifica al usuario
+      // if (client.music.isPlaying) {
+      //   client.music.queue.addToQueue(song);
+      //   await interaction.followUp(`Añadido a la cola: **${song.title}**`);
+      // } else {
+      //   // Si no hay música reproduciéndose, comienza a reproducir y establece el estado a reproduciendo
+      //   const connection = joinVoiceChannel({
+      //     channelId: member.voice.channelId,
+      //     guildId: interaction.guildId!,
+      //     adapterCreator: interaction.guild!.voiceAdapterCreator,
+      //   });
 
-        client.music.isPlaying = true;
-        client.music.queue.addToQueue(song);
+      //   client.music.isPlaying = true;
+      //   client.music.queue.addToQueue(song);
 
-        playSong(
-          client,
-          interaction,
-          connection,
-          client.music.queue.getNextItem()!
-        );
-      }
+      //   playSong(
+      //     client,
+      //     interaction,
+      //     connection,
+      //     client.music.queue.getNextItem()!
+      //   );
+      // }
     } catch (error) {
       console.error("Error al procesar el comando 'play':", error);
       await interaction.followUp(
