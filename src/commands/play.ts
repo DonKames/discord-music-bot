@@ -1,22 +1,14 @@
 import { joinVoiceChannel } from "@discordjs/voice";
-import {
-  CommandInteraction,
-  SlashCommandBuilder,
-  StringSelectMenuInteraction,
-} from "discord.js";
+import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
 import {
-  extractPlaylistId,
   fetchPlaylistSongs,
   fetchSongInfo,
   playSong,
 } from "../utils/musicUtils";
-import {
-  searchResultMenuActionRow,
-  validateInteractionGuildAndMember,
-} from "../utils/interactionUtils";
+import { validateInteractionGuildAndMember } from "../utils/interactionUtils";
 import ytdl from "@distube/ytdl-core";
 
 const play = {
@@ -101,6 +93,11 @@ const play = {
           return;
         } else {
           console.log("incluye lista");
+
+          const playlistSongs = await fetchPlaylistSongs(query);
+
+          console.log("🚀 ~ execute ~ playlistSongs:", playlistSongs);
+
           return;
         }
       } else {

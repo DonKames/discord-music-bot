@@ -74,12 +74,6 @@ export async function downloadSong(url: string) {
     // Descarga el video como audio
     const videoStream = ytdl(url, {
       filter: "audioonly",
-      requestOptions: {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        },
-      },
     });
 
     // Manejador para capturar el error y mostrar más detalles
@@ -91,7 +85,7 @@ export async function downloadSong(url: string) {
       console.error("Error en el stream de video:", err);
     });
 
-    console.log("🚀 ~ downloadSong ~ videoStream:", videoStream);
+    // console.log("🚀 ~ downloadSong ~ videoStream:", videoStream);
 
     const videoBuffer = await streamToBuffer(videoStream);
     await writeFileAsync(tempFileName, videoBuffer);
@@ -211,31 +205,33 @@ export async function fetchPlaylistSongs(
 
     const songs: QueueSong[] = [];
 
-    do {
-      const response = await youtube.playlistItems.list({
-        playlistId,
-        part: ["snippet"],
-        maxResults: 50,
-        pageToken: nextPageToken,
-      });
+    // do {
+    const response = await youtube.playlistItems.list({
+      playlistId,
+      part: ["snippet"],
+      maxResults: 50,
+      pageToken: nextPageToken,
+    });
 
-      const items = response.data.items;
-      if (items) {
-        for (const item of items) {
-          const title = item.snippet?.title;
-          const videoId = item.snippet?.resourceId?.videoId;
+    console.log("🚀 ~ response:", response);
 
-          if (title && videoId) {
-            songs.push({
-              title,
-              url: `https://www.youtube.com/watch?v=${videoId}`,
-            });
-          }
+    const items = response.data.items;
+    if (items) {
+      for (const item of items) {
+        const title = item.snippet?.title;
+        const videoId = item.snippet?.resourceId?.videoId;
+
+        if (title && videoId) {
+          songs.push({
+            title,
+            url: `https://www.youtube.com/watch?v=${videoId}`,
+          });
         }
       }
+    }
 
-      nextPageToken = response.data.nextPageToken!;
-    } while (nextPageToken);
+    nextPageToken = response.data.nextPageToken!;
+    // } while (nextPageToken);
 
     return songs;
   } catch (error) {
