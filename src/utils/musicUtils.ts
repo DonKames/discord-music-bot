@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import { CommandInteraction } from "discord.js";
 import { VoiceConnection, createAudioResource } from "@discordjs/voice";
-import ytdl from "ytdl-core";
+import ytdl from "@distube/ytdl-core";
 import fs from "fs";
 import { Readable } from "stream";
 import { promisify } from "util";
@@ -72,23 +72,20 @@ export async function downloadSong(url: string) {
     console.log("🚀 ~ downloadSong ~ tempFileName:", tempFileName);
 
     // Descarga el video como audio
-    const videoStream = ytdl(
-      url
-      //   {
-      //   filter: "audioonly",
-      //   requestOptions: {
-      //     headers: {
-      //       "User-Agent":
-      //         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      //     },
-      //   },
-      // }
-    );
+    const videoStream = ytdl(url, {
+      filter: "audioonly",
+      requestOptions: {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        },
+      },
+    });
 
     // Manejador para capturar el error y mostrar más detalles
-    videoStream.on("response", (res) => {
-      console.log("🚀 ~ downloadSong ~ Response Headers:", res.headers);
-    });
+    // videoStream.on("response", (res) => {
+    //   console.log("🚀 ~ downloadSong ~ Response Headers:", res.headers);
+    // });
 
     videoStream.on("error", (err) => {
       console.error("Error en el stream de video:", err);

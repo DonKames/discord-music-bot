@@ -17,7 +17,7 @@ import {
   searchResultMenuActionRow,
   validateInteractionGuildAndMember,
 } from "../utils/interactionUtils";
-import ytdl from "ytdl-core";
+import ytdl from "@distube/ytdl-core";
 
 const play = {
   data: new SlashCommandBuilder()
