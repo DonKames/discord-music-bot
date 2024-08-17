@@ -68,6 +68,7 @@ const play = {
       if (ytdl.validateURL(query)) {
         if (!query.includes("list=")) {
           songInfo = await fetchSongInfo(query, interaction);
+          console.log("🚀 ~ execute ~ songInfo:", songInfo);
 
           console.log("no incluye lista");
           if (!songInfo) {

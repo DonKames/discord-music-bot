@@ -26,6 +26,7 @@ export async function playSong(
   try {
     // Descarga el archivo de audio
     const songName = await downloadSong(url);
+    console.log("🚀 ~ songName:", songName);
 
     // Verifica que el archivo se haya descargado antes de intentar reproducirlo
     if (songName) {
@@ -64,19 +65,53 @@ export async function playSong(
 }
 
 export async function downloadSong(url: string) {
+  console.log("🚀 ~ downloadSong ~ url:", url);
   try {
     // Define el nombre del archivo temporal
     const tempFileName = `temp_audio_${Date.now()}.mp4`;
+    console.log("🚀 ~ downloadSong ~ tempFileName:", tempFileName);
 
     // Descarga el video como audio
-    const videoStream = ytdl(url, { filter: "audioonly" });
+    const videoStream = ytdl(
+      url
+      //   {
+      //   filter: "audioonly",
+      //   requestOptions: {
+      //     headers: {
+      //       "User-Agent":
+      //         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      //     },
+      //   },
+      // }
+    );
+
+    // Manejador para capturar el error y mostrar más detalles
+    videoStream.on("response", (res) => {
+      console.log("🚀 ~ downloadSong ~ Response Headers:", res.headers);
+    });
+
+    videoStream.on("error", (err) => {
+      console.error("Error en el stream de video:", err);
+    });
+
+    console.log("🚀 ~ downloadSong ~ videoStream:", videoStream);
+
     const videoBuffer = await streamToBuffer(videoStream);
     await writeFileAsync(tempFileName, videoBuffer);
 
     // Devuelve el nombre del archivo temporal
     return tempFileName;
   } catch (error) {
-    console.error("Error al descargar el video:", error);
+    // Verificación de tipo para asegurar que `error` es de tipo `Error`
+    if (error instanceof Error) {
+      console.error("Error al descargar el video con detalles:", {
+        message: error.message,
+        stack: error.stack,
+        // ...error,
+      });
+    } else {
+      console.error("Error desconocido al descargar el video:", error);
+    }
 
     return null;
   }
@@ -85,10 +120,14 @@ export async function downloadSong(url: string) {
 // Función auxiliar para convertir un stream a buffer
 export function streamToBuffer(stream: Readable) {
   return new Promise<Buffer>((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    stream.on("data", (chunk: Buffer) => chunks.push(chunk));
-    stream.on("end", () => resolve(Buffer.concat(chunks)));
-    stream.on("error", reject);
+    try {
+      const chunks: Buffer[] = [];
+      stream.on("data", (chunk: Buffer) => chunks.push(chunk));
+      stream.on("end", () => resolve(Buffer.concat(chunks)));
+      stream.on("error", reject);
+    } catch (error) {
+      console.log("🚀 ~ streamToBuffer ~ error:", error);
+    }
   });
 }
 
