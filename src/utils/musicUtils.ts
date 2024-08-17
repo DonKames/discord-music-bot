@@ -76,16 +76,9 @@ export async function downloadSong(url: string) {
       filter: "audioonly",
     });
 
-    // Manejador para capturar el error y mostrar más detalles
-    // videoStream.on("response", (res) => {
-    //   console.log("🚀 ~ downloadSong ~ Response Headers:", res.headers);
-    // });
-
     videoStream.on("error", (err) => {
       console.error("Error en el stream de video:", err);
     });
-
-    // console.log("🚀 ~ downloadSong ~ videoStream:", videoStream);
 
     const videoBuffer = await streamToBuffer(videoStream);
     await writeFileAsync(tempFileName, videoBuffer);
