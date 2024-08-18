@@ -64,7 +64,9 @@ const play = {
 
           console.log("no incluye lista");
           if (!songInfo) {
-            await interaction.followUp(`No hay songInfo`);
+            await interaction.followUp(
+              `Hubo un error al recuperar la información de la canción`
+            );
             return;
           }
 
@@ -97,6 +99,10 @@ const play = {
           const playlistSongs = await fetchPlaylistSongs(query);
 
           console.log("🚀 ~ execute ~ playlistSongs:", playlistSongs);
+
+          for (const song of playlistSongs) {
+            client.music.queue.addToQueue(song);
+          }
 
           return;
         }
