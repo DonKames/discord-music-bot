@@ -28,7 +28,7 @@ const next = {
 
       return;
     }
-    playNextSong(client, interaction, nextSong);
+    playNextSong(client, interaction);
 
     await interaction.reply(`Siguiente canción: ${nextSong.title}`);
   },
@@ -36,8 +36,7 @@ const next = {
 
 async function playNextSong(
   client: ExtendedClient,
-  interaction: CommandInteraction,
-  nextSong: QueueSong
+  interaction: CommandInteraction
 ) {
   try {
     const member = await interaction.guild?.members.fetch(interaction.user.id);
@@ -51,17 +50,11 @@ async function playNextSong(
 
     // const connection = client.voice?.adapters.get(interaction.guildId!);
 
-    const connection = getVoiceConnection(interaction.guildId!);
-    if (!connection) {
-      await interaction.reply("No estoy conectado a un canal de voz.");
-      return;
-    }
-
     // Aquí puedes detener la canción actual si es necesario
     // Por ejemplo: connection?.destroy();
 
     // Reproduce la siguiente canción en la cola
-    playSong(client, interaction, connection, nextSong);
+    playSong(client, interaction);
   } catch (error) {
     console.log("🚀 ~ next.ts error:", error);
 

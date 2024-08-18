@@ -1,7 +1,11 @@
 import "dotenv/config";
 
 import { CommandInteraction } from "discord.js";
-import { VoiceConnection, createAudioResource } from "@discordjs/voice";
+import {
+  createAudioResource,
+  joinVoiceChannel,
+  VoiceConnection,
+} from "@discordjs/voice";
 import ytdl from "@distube/ytdl-core";
 import fs from "fs";
 import { Readable } from "stream";
@@ -11,57 +15,92 @@ import { Music, QueueSong } from "./Music";
 import { ExtendedClient } from "../ExtendedClient";
 import { errorHandler } from "./errorHandler";
 import { google } from "googleapis";
+import { validateInteractionGuildAndMember } from "./interactionUtils";
 
 const writeFileAsync = promisify(fs.writeFile);
 const unlinkAsync = promisify(fs.unlink);
 
 export async function playSong(
   client: ExtendedClient,
-  interaction: CommandInteraction,
-  connection: VoiceConnection,
-  song: QueueSong
+  interaction: CommandInteraction
 ) {
-  const { url, title } = song;
+  const { url, title } = client.music.queue.getNextItem()!;
 
   try {
     // Descarga el archivo de audio
-    const songName = await downloadSong(url);
-    console.log("🚀 ~ songName:", songName);
+    const songFileName = await downloadSong(url);
 
     // Verifica que el archivo se haya descargado antes de intentar reproducirlo
-    if (songName) {
-      // Reproduce el archivo descargado
-      // const player = createAudioPlayer();
-      const musicInstance = Music.getInstance();
-      const audioPlayer = musicInstance.audioPlayer!;
+    if (songFileName) {
+      const connection = await joinChannel(interaction);
 
-      connection.subscribe(audioPlayer);
-      const resource = createAudioResource(songName!);
-      audioPlayer.play(resource);
-
-      if (interaction.deferred || interaction.replied) {
-        await interaction.followUp(`Reproduciendo ahora: **${title}**`);
-      } else {
-        await interaction.reply(`Reproduciendo ahora: **${title}**`);
+      if (!connection) {
+        throw new Error("Error al unirse al canal de voz.");
       }
 
-      // Maneja la finalización de la reproducción y la cola
-      audioPlayer.on("stateChange", async (oldState, newState) => {
-        if (newState.status === "idle") {
-          unlinkAsync(songName!).catch(console.error);
-          client.music.isPlaying = false;
-          const nextSong = client.music.queue.getNextItem();
-          if (nextSong) {
-            playSong(client, interaction, connection, nextSong);
-          }
-        }
-      });
+      createAudioPlayerAndPlay(
+        songFileName,
+        interaction,
+        title,
+        client,
+        connection
+      );
     } else {
-      throw new Error("Error al descargar el archivo de audio.");
+      throw new Error("Error al reproducir el archivo de audio.");
     }
   } catch (error) {
     errorHandler(error, interaction);
   }
+}
+
+async function joinChannel(
+  interaction: CommandInteraction
+): Promise<VoiceConnection> {
+  // Valida si el miembro está en un canal de voz y si interaction.member, interaction.guild y interaction.guildId no son nulos
+  const member = await validateInteractionGuildAndMember(interaction);
+
+  const connection: VoiceConnection = joinVoiceChannel({
+    channelId: member.voice.channelId,
+    guildId: interaction.guildId!,
+    adapterCreator: interaction.guild?.voiceAdapterCreator!,
+  });
+
+  return connection;
+}
+
+async function createAudioPlayerAndPlay(
+  songFileName: string,
+  interaction: CommandInteraction,
+  title: string,
+  client: ExtendedClient,
+  connection: VoiceConnection
+) {
+  // Reproduce el archivo descargado
+  // const player = createAudioPlayer();
+  const musicInstance = Music.getInstance();
+  const audioPlayer = musicInstance.audioPlayer!;
+
+  connection.subscribe(audioPlayer);
+  const resource = createAudioResource(songFileName!);
+  audioPlayer.play(resource);
+
+  if (interaction.deferred || interaction.replied) {
+    await interaction.followUp(`Reproduciendo ahora: **${title}**`);
+  } else {
+    await interaction.reply(`Reproduciendo ahora: **${title}**`);
+  }
+
+  // Maneja la finalización de la reproducción y la cola
+  audioPlayer.on("stateChange", async (oldState, newState) => {
+    if (newState.status === "idle") {
+      unlinkAsync(songFileName!).catch(console.error);
+      client.music.isPlaying = false;
+      const nextSong = client.music.queue.getNextItem();
+      if (nextSong) {
+        playSong(client, interaction);
+      }
+    }
+  });
 }
 
 export async function downloadSong(url: string) {
@@ -69,7 +108,6 @@ export async function downloadSong(url: string) {
   try {
     // Define el nombre del archivo temporal
     const tempFileName = `temp_audio_${Date.now()}.mp4`;
-    console.log("🚀 ~ downloadSong ~ tempFileName:", tempFileName);
 
     // Descarga el video como audio
     const videoStream = ytdl(url, {
@@ -89,9 +127,9 @@ export async function downloadSong(url: string) {
     // Verificación de tipo para asegurar que `error` es de tipo `Error`
     if (error instanceof Error) {
       console.error("Error al descargar el video con detalles:", {
-        message: error.message,
+        // message: error.message,
         stack: error.stack,
-        // ...error,
+        ...error,
       });
     } else {
       console.error("Error desconocido al descargar el video:", error);
