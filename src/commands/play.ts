@@ -43,8 +43,6 @@ const play = {
       // Responder de forma diferida
       await interaction.deferReply();
 
-      // let videoInfo, videoTitle, videoUrl;
-
       let songInfo;
 
       console.log(query);

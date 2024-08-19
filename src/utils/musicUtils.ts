@@ -84,11 +84,11 @@ async function createAudioPlayerAndPlay(
   const resource = createAudioResource(songFileName!);
   audioPlayer.play(resource);
 
-  if (interaction.deferred || interaction.replied) {
-    await interaction.followUp(`Reproduciendo ahora: **${title}**`);
-  } else {
-    await interaction.reply(`Reproduciendo ahora: **${title}**`);
-  }
+  // if (interaction.deferred || interaction.replied) {
+  //   await interaction.followUp(`Reproduciendo ahora: **${title}**`);
+  // } else {
+  //   await interaction.reply(`Reproduciendo ahora: **${title}**`);
+  // }
 
   // Maneja la finalización de la reproducción y la cola
   audioPlayer.on("stateChange", async (oldState, newState) => {
