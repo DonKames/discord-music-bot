@@ -38,13 +38,7 @@ export async function playSong(
         throw new Error("Error al unirse al canal de voz.");
       }
 
-      createAudioPlayerAndPlay(
-        songFileName,
-        interaction,
-        title,
-        client,
-        connection
-      );
+      createAudioPlayerAndPlay(songFileName, interaction, client, connection);
     } else {
       throw new Error("Error al reproducir el archivo de audio.");
     }
@@ -71,7 +65,6 @@ async function joinChannel(
 async function createAudioPlayerAndPlay(
   songFileName: string,
   interaction: CommandInteraction,
-  title: string,
   client: ExtendedClient,
   connection: VoiceConnection
 ) {

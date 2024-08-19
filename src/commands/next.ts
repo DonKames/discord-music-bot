@@ -19,18 +19,9 @@ const next = {
       return;
     }
 
-    const nextSong = client.music.queue.getNextItem();
-
-    if (!nextSong) {
-      await interaction.reply(
-        "No hay mas canciones en la cola de reproducción."
-      );
-
-      return;
-    }
     playNextSong(client, interaction);
 
-    await interaction.reply(`Siguiente canción: ${nextSong.title}`);
+    // await interaction.reply(`Siguiente canción: ${nextSong.title}`);
   },
 };
 
@@ -47,8 +38,6 @@ async function playNextSong(
       );
       return;
     }
-
-    // const connection = client.voice?.adapters.get(interaction.guildId!);
 
     // Aquí puedes detener la canción actual si es necesario
     // Por ejemplo: connection?.destroy();

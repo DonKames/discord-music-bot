@@ -1,4 +1,8 @@
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  CommandInteraction,
+  EmbedBuilder,
+  SlashCommandBuilder,
+} from "discord.js";
 
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
@@ -69,20 +73,43 @@ const play = {
             client.music.queue.addToQueue(song);
 
             playSong(client, interaction);
+            await interaction.followUp(
+              `Reproduciendo ahora: **${song.title}**`
+            );
           }
           return;
         } else {
           console.log("incluye lista");
-
           const playlistSongs = await fetchPlaylistSongs(query);
-
-          console.log("🚀 ~ execute ~ playlistSongs:", playlistSongs);
 
           for (const song of playlistSongs) {
             client.music.queue.addToQueue(song);
           }
 
-          playSong(client, interaction);
+          if (!client.music.isPlaying) {
+            playSong(client, interaction);
+
+            // Embed para el video que se está reproduciendo ahora
+
+            await interaction.followUp(
+              `Reproduciendo ahora: **${playlistSongs[0].url}**`
+            );
+
+            // Embed para las canciones agregadas
+            const addedSongsEmbed = new EmbedBuilder()
+              .setDescription(
+                `Se han agregado **${playlistSongs.length}** canciones a la lista de reproducción`
+              )
+              .setColor("#00FF00"); // Color personalizado
+
+            await interaction.followUp({ embeds: [addedSongsEmbed] });
+          } else {
+            await interaction.followUp(
+              `Se han agregado *${playlistSongs.length}*  a la lista de reproducción`
+            );
+          }
+
+          console.log("🚀 ~ execute ~ playlistSongs:", playlistSongs);
 
           return;
         }
