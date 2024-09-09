@@ -22,6 +22,20 @@ const PLAY_COMMAND = {
   ],
 };
 
+const LIST_COMMAND = {
+  name: "list",
+  description: "Add a list of songs to the playlist",
+  type: 1,
+  options: [
+    {
+      name: "list-link",
+      description: "The YouTube link of the list to add",
+      type: 3,
+      required: true,
+    },
+  ],
+};
+
 const NEXT_COMMAND = {
   name: "next",
   description: "Next song of the queue.",
@@ -52,6 +66,7 @@ const STOP_COMMAND = {
 const ALL_COMMANDS = [
   TEST_COMMAND,
   PLAY_COMMAND,
+  LIST_COMMAND,
   NEXT_COMMAND,
   QUEUE_COMMAND,
   PAUSE_COMMAND,

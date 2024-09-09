@@ -1,6 +1,11 @@
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  CommandInteraction,
+  EmbedBuilder,
+  SlashCommandBuilder,
+} from "discord.js";
 import { ExtendedClient } from "../ExtendedClient";
 import ytdl from "@distube/ytdl-core";
+import { fetchPlaylistSongs, playSong } from "../utils/musicUtils";
 
 const list = {
   data: new SlashCommandBuilder()
@@ -8,7 +13,7 @@ const list = {
     .setDescription("Add a list of songs.")
     .addStringOption((option) =>
       option
-        .setName("listLink")
+        .setName("list-link")
         .setDescription("The link to the list")
         .setRequired(true)
     ),
@@ -17,7 +22,7 @@ const list = {
     const client = ExtendedClient.getInstance();
 
     try {
-      const listLink = interaction.options.get("listLink", true);
+      const listLink = interaction.options.get("list-link", true);
 
       let url = listLink.value as string;
 
@@ -34,8 +39,41 @@ const list = {
           return;
         }
       }
+
+      const playlistSongs = await fetchPlaylistSongs(url);
+
+      for (const song of playlistSongs) {
+        client.music.queue.addToQueue(song);
+      }
+
+      if (client.music.isPlaying) {
+        await interaction.reply(
+          `Se agregaron ${playlistSongs.length} canciones a la cola de reproducción.`
+        );
+      } else {
+        playSong(client, interaction);
+
+        // Embed para las canciones agregadas
+        const addedSongsEmbed = new EmbedBuilder()
+          .setDescription(
+            `Se han agregado **${playlistSongs.length}** canciones a la lista de reproducción`
+          )
+          .setColor("#00FF00"); // Color personalizado
+
+        await interaction.reply({ embeds: [addedSongsEmbed] });
+        await interaction.followUp(
+          `Reproduciendo ahora: **${playlistSongs[0].url}**`
+        );
+      }
+
+      console.log("🚀 ~ execute ~ playlistSongs:", playlistSongs);
+
+      return;
     } catch (error) {
       console.log("🚀 ~ execute ~ error:", error);
+      await interaction.followUp("Hubo un error al intentar agregar la lista.");
     }
   },
 };
+
+export default list;
