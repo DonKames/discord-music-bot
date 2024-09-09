@@ -76,6 +76,7 @@ async function createAudioPlayerAndPlay(
   connection.subscribe(audioPlayer);
   const resource = createAudioResource(songFileName!);
   audioPlayer.play(resource);
+  client.music.isPlaying = true;
 
   // if (interaction.deferred || interaction.replied) {
   //   await interaction.followUp(`Reproduciendo ahora: **${title}**`);

@@ -50,67 +50,32 @@ const play = {
       let songInfo;
 
       if (ytdl.validateURL(query)) {
-        if (!query.includes("list=")) {
-          songInfo = await fetchSongInfo(query, interaction);
-          console.log("🚀 ~ execute ~ songInfo:", songInfo);
+        songInfo = await fetchSongInfo(query, interaction);
+        console.log("🚀 ~ execute ~ songInfo:", songInfo);
 
-          console.log("no incluye lista");
-          if (!songInfo) {
-            await interaction.followUp(
-              `Hubo un error al recuperar la información de la canción`
-            );
-            return;
-          }
-
-          const song: QueueSong = songInfo;
-
-          if (client.music.isPlaying) {
-            client.music.queue.addToQueue(song);
-            await interaction.followUp(`Añadido a la cola: **${song.title}**`);
-          } else {
-            client.music.queue.addToQueue(song);
-
-            playSong(client, interaction);
-            await interaction.followUp(
-              `Reproduciendo ahora: **${song.title}**`
-            );
-          }
-          return;
-        } else {
-          console.log("incluye lista");
-          const playlistSongs = await fetchPlaylistSongs(query);
-
-          for (const song of playlistSongs) {
-            client.music.queue.addToQueue(song);
-          }
-
-          if (!client.music.isPlaying) {
-            playSong(client, interaction);
-
-            // Embed para el video que se está reproduciendo ahora
-
-            await interaction.followUp(
-              `Reproduciendo ahora: **${playlistSongs[0].url}**`
-            );
-
-            // Embed para las canciones agregadas
-            const addedSongsEmbed = new EmbedBuilder()
-              .setDescription(
-                `Se han agregado **${playlistSongs.length}** canciones a la lista de reproducción`
-              )
-              .setColor("#00FF00"); // Color personalizado
-
-            await interaction.followUp({ embeds: [addedSongsEmbed] });
-          } else {
-            await interaction.followUp(
-              `Se han agregado *${playlistSongs.length}*  a la lista de reproducción`
-            );
-          }
-
-          console.log("🚀 ~ execute ~ playlistSongs:", playlistSongs);
-
+        if (!songInfo) {
+          await interaction.followUp(
+            `Hubo un error al recuperar la información de la canción`
+          );
           return;
         }
+
+        const song: QueueSong = songInfo;
+
+        console.log("isPlaying", client.music.isPlaying);
+
+        if (client.music.isPlaying) {
+          client.music.queue.addToQueue(song);
+          await interaction.followUp(`Añadido a la cola: **${song.title}**`);
+        } else {
+          client.music.queue.addToQueue(song);
+
+          playSong(client, interaction);
+          console.log("isPlaying 2", client.music.isPlaying);
+
+          await interaction.followUp(`Reproduciendo ahora: **${song.title}**`);
+        }
+        return;
       } else {
         console.log("no es un URL valido, buscar termino");
         return;
