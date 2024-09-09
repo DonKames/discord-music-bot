@@ -49,8 +49,6 @@ const play = {
 
       let songInfo;
 
-      console.log(query);
-
       if (ytdl.validateURL(query)) {
         if (!query.includes("list=")) {
           songInfo = await fetchSongInfo(query, interaction);
