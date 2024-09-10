@@ -39,6 +39,12 @@ export async function playSong(
       }
 
       createAudioPlayerAndPlay(songFileName, interaction, client, connection);
+
+      if (interaction.replied) {
+        await interaction.followUp(`Reproduciendo ahora: **${url}**`);
+      } else {
+        await interaction.reply(`Reproduciendo ahora: **${url}**`);
+      }
     } else {
       throw new Error("Error al reproducir el archivo de audio.");
     }
@@ -84,6 +90,7 @@ async function createAudioPlayerAndPlay(
   //   await interaction.reply(`Reproduciendo ahora: **${title}**`);
   // }
 
+  // audioPlayer.state;
   // Maneja la finalización de la reproducción y la cola
   audioPlayer.on("stateChange", async (oldState, newState) => {
     if (newState.status === "idle") {
