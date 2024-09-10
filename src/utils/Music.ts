@@ -1,4 +1,12 @@
-import { AudioPlayer, createAudioPlayer } from "@discordjs/voice";
+import {
+  AudioPlayer,
+  AudioPlayerState,
+  createAudioPlayer,
+} from "@discordjs/voice";
+import { ExtendedClient } from "../ExtendedClient";
+import { CommandInteraction } from "discord.js";
+import fs from "fs";
+import { promisify } from "util";
 
 export interface QueueSong {
   url: string;
@@ -37,8 +45,32 @@ export class Music {
   public isPlaying: boolean = false;
   public audioPlayer: AudioPlayer | null = null;
 
+  private songFileName: string | null = null;
+  private client: ExtendedClient | null = null;
+  private interaction: CommandInteraction | null = null;
+  private unlinkAsync = promisify(fs.unlink);
+
   private constructor() {
     this.audioPlayer = createAudioPlayer();
+
+    this.audioPlayer.on(
+      "stateChange",
+      async (oldState: AudioPlayerState, newState: AudioPlayerState) => {
+        if (newState.status === "idle") {
+          if (this.songFileName && fs.existsSync(this.songFileName)) {
+            await this.unlinkAsync(this.songFileName).catch(console.error);
+          }
+
+          if (this.client) {
+            this.client.music.isPlaying = false;
+            const nextSong = this.client.music.queue.getNextItem();
+            if (nextSong) {
+              this.playSong(this.client, this.interaction!);
+            }
+          }
+        }
+      }
+    );
   }
 
   public static getInstance(): Music {
