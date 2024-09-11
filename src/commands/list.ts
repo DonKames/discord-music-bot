@@ -5,7 +5,7 @@ import {
 } from "discord.js";
 import { ExtendedClient } from "../ExtendedClient";
 import ytdl from "@distube/ytdl-core";
-import { fetchPlaylistSongs, playSong } from "../utils/musicUtils";
+import { fetchPlaylistSongs } from "../utils/musicUtils";
 
 const list = {
   data: new SlashCommandBuilder()
@@ -51,7 +51,7 @@ const list = {
           `Se agregaron ${playlistSongs.length} canciones a la cola de reproducción.`
         );
       } else {
-        playSong(client, interaction);
+        client.music.playSong(client, interaction);
 
         // Embed para las canciones agregadas
         const addedSongsEmbed = new EmbedBuilder()

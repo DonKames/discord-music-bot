@@ -20,38 +20,38 @@ import { validateInteractionGuildAndMember } from "./interactionUtils";
 const writeFileAsync = promisify(fs.writeFile);
 const unlinkAsync = promisify(fs.unlink);
 
-export async function playSong(
-  client: ExtendedClient,
-  interaction: CommandInteraction
-) {
-  const { url, title } = client.music.queue.getNextItem()!;
+// export async function playSong(
+//   client: ExtendedClient,
+//   interaction: CommandInteraction
+// ) {
+//   const { url, title } = client.music.queue.getNextItem()!;
 
-  try {
-    // Descarga el archivo de audio
-    const songFileName = await downloadSong(url);
+//   try {
+//     // Descarga el archivo de audio
+//     const songFileName = await downloadSong(url);
 
-    // Verifica que el archivo se haya descargado antes de intentar reproducirlo
-    if (songFileName) {
-      const connection = await joinChannel(interaction);
+//     // Verifica que el archivo se haya descargado antes de intentar reproducirlo
+//     if (songFileName) {
+//       const connection = await joinChannel(interaction);
 
-      if (!connection) {
-        throw new Error("Error al unirse al canal de voz.");
-      }
+//       if (!connection) {
+//         throw new Error("Error al unirse al canal de voz.");
+//       }
 
-      createAudioPlayerAndPlay(songFileName, interaction, client, connection);
+//       createAudioPlayerAndPlay(songFileName, interaction, client, connection);
 
-      if (interaction.replied) {
-        await interaction.followUp(`Reproduciendo ahora: **${url}**`);
-      } else {
-        await interaction.reply(`Reproduciendo ahora: **${url}**`);
-      }
-    } else {
-      throw new Error("Error al reproducir el archivo de audio.");
-    }
-  } catch (error) {
-    errorHandler(error, interaction);
-  }
-}
+//       if (interaction.replied) {
+//         await interaction.followUp(`Reproduciendo ahora: **${url}**`);
+//       } else {
+//         await interaction.reply(`Reproduciendo ahora: **${url}**`);
+//       }
+//     } else {
+//       throw new Error("Error al reproducir el archivo de audio.");
+//     }
+//   } catch (error) {
+//     errorHandler(error, interaction);
+//   }
+// }
 
 export async function joinChannel(
   interaction: CommandInteraction
@@ -92,16 +92,16 @@ export async function createAudioPlayerAndPlay(
 
   // audioPlayer.state;
   // Maneja la finalización de la reproducción y la cola
-  audioPlayer.on("stateChange", async (oldState, newState) => {
-    if (newState.status === "idle") {
-      unlinkAsync(songFileName!).catch(console.error);
-      client.music.isPlaying = false;
-      const nextSong = client.music.queue.getNextItem();
-      if (nextSong) {
-        playSong(client, interaction);
-      }
-    }
-  });
+  // audioPlayer.on("stateChange", async (oldState, newState) => {
+  //   if (newState.status === "idle") {
+  //     unlinkAsync(songFileName!).catch(console.error);
+  //     client.music.isPlaying = false;
+  //     const nextSong = client.music.queue.getNextItem();
+  //     if (nextSong) {
+  //       playSong(client, interaction);
+  //     }
+  //   }
+  // });
 }
 
 export async function downloadSong(url: string) {

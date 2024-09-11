@@ -104,8 +104,13 @@ export class Music {
       // Crear recurso y reproducir usando audioPlayer
       this.isPlaying = true;
       this.downloadAndPlay(song, client, interaction);
+      if (interaction.replied || interaction.deferred) {
+        interaction.followUp(`Reproduciendo ahora: ${song.url}`);
+      } else {
+        interaction.reply(`Reproduciendo ahora: ${song.url}`);
+      }
     } else {
-      if (interaction.replied) {
+      if (interaction.replied || interaction.deferred) {
         interaction.followUp("No hay más canciones en la cola");
       } else {
         interaction.reply("No hay más canciones en la cola");

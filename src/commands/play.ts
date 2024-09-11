@@ -6,11 +6,7 @@ import {
 
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
-import {
-  fetchPlaylistSongs,
-  fetchSongInfo,
-  playSong,
-} from "../utils/musicUtils";
+import { fetchPlaylistSongs, fetchSongInfo } from "../utils/musicUtils";
 import ytdl from "@distube/ytdl-core";
 
 const play = {
@@ -70,7 +66,7 @@ const play = {
           music.playSong(client, interaction);
           console.log("isPlaying 2", client.music.isPlaying);
 
-          await interaction.followUp(`Reproduciendo ahora: **${song.title}**`);
+          await interaction.followUp(`Reproduciendo ahora: **${song.url}**`);
         }
         return;
       } else {

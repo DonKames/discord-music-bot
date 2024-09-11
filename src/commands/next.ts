@@ -3,7 +3,6 @@ import { getVoiceConnection } from "@discordjs/voice";
 
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
-import { playSong } from "../utils/musicUtils";
 import { errorHandler } from "../utils/errorHandler";
 
 const next = {
@@ -43,7 +42,7 @@ async function playNextSong(
     // Por ejemplo: connection?.destroy();
 
     // Reproduce la siguiente canción en la cola
-    playSong(client, interaction);
+    client.music.playSong(client, interaction);
   } catch (error) {
     console.log("🚀 ~ next.ts error:", error);
 
