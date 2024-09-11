@@ -7,6 +7,12 @@ import { ExtendedClient } from "../ExtendedClient";
 import { CommandInteraction } from "discord.js";
 import fs from "fs";
 import { promisify } from "util";
+import { errorHandler } from "./errorHandler";
+import {
+  createAudioPlayerAndPlay,
+  downloadSong,
+  joinChannel,
+} from "./musicUtils";
 
 export interface QueueSong {
   url: string;
@@ -73,11 +79,57 @@ export class Music {
     );
   }
 
+  public setPlaybackContext(
+    songFileName: string,
+    client: ExtendedClient,
+    interaction: CommandInteraction
+  ) {
+    this.songFileName = songFileName;
+    this.client = client;
+    this.interaction = interaction;
+  }
+
   public static getInstance(): Music {
     if (!Music.instance) {
       Music.instance = new Music();
     }
 
     return Music.instance;
+  }
+
+  public playSong(client: ExtendedClient, interaction: CommandInteraction) {
+    const song = client.music.queue.getNextItem();
+
+    if (song) {
+      // Crear recurso y reproducir usando audioPlayer
+      this.isPlaying = true;
+      this.downloadAndPlay(song, client, interaction);
+    } else {
+      if (interaction.replied) {
+        interaction.followUp("No hay más canciones en la cola");
+      } else {
+        interaction.reply("No hay más canciones en la cola");
+      }
+    }
+  }
+
+  private async downloadAndPlay(
+    song: QueueSong,
+    client: ExtendedClient,
+    interaction: CommandInteraction
+  ) {
+    try {
+      const songFileName = await downloadSong(song.url);
+
+      if (songFileName) {
+        const connection = await joinChannel(interaction);
+        createAudioPlayerAndPlay(songFileName, interaction, client, connection);
+      } else {
+        throw new Error("No se pudo descargar la canción");
+      }
+    } catch (error) {
+      console.log("🚀 ~ Music ~ downloadAndPlay ~ error:", error);
+      errorHandler(error, interaction);
+    }
   }
 }

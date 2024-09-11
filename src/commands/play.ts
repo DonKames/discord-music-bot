@@ -26,13 +26,10 @@ const play = {
   async execute(interaction: CommandInteraction) {
     console.log("PlayCommand");
     const client = ExtendedClient.getInstance();
+    const music = client.music;
 
     try {
-      // Para todos los flujos
       const linkOption = interaction.options.get("link", true);
-      // console.log("🚀 ~ playCommand ~ linkOption:", linkOption);
-
-      // Asegura que el valor es un string
       let query = linkOption.value as string;
       // console.log("🚀 ~ playCommand ~ link:", query);
 
@@ -64,13 +61,13 @@ const play = {
 
         console.log("isPlaying", client.music.isPlaying);
 
-        if (client.music.isPlaying) {
-          client.music.queue.addToQueue(song);
+        if (music.isPlaying) {
+          music.queue.addToQueue(song);
           await interaction.followUp(`Añadido a la cola: **${song.title}**`);
         } else {
-          client.music.queue.addToQueue(song);
+          music.queue.addToQueue(song);
 
-          playSong(client, interaction);
+          music.playSong(client, interaction);
           console.log("isPlaying 2", client.music.isPlaying);
 
           await interaction.followUp(`Reproduciendo ahora: **${song.title}**`);

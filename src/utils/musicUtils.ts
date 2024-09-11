@@ -53,7 +53,7 @@ export async function playSong(
   }
 }
 
-async function joinChannel(
+export async function joinChannel(
   interaction: CommandInteraction
 ): Promise<VoiceConnection> {
   // Valida si el miembro está en un canal de voz y si interaction.member, interaction.guild y interaction.guildId no son nulos
@@ -68,7 +68,7 @@ async function joinChannel(
   return connection;
 }
 
-async function createAudioPlayerAndPlay(
+export async function createAudioPlayerAndPlay(
   songFileName: string,
   interaction: CommandInteraction,
   client: ExtendedClient,
