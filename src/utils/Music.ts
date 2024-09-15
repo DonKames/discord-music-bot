@@ -82,6 +82,8 @@ export class Music {
             } else {
               console.log("No hay más canciones en la cola");
             }
+          } else {
+            console.log("No hay client");
           }
         }
       }
