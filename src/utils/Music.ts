@@ -62,16 +62,25 @@ export class Music {
     this.audioPlayer.on(
       "stateChange",
       async (oldState: AudioPlayerState, newState: AudioPlayerState) => {
+        console.log("🚀 ~ Music ~ newState:", newState);
+        console.log("🚀 ~ Music ~ oldState:", oldState);
+
         if (newState.status === "idle") {
           if (this.songFileName && fs.existsSync(this.songFileName)) {
             await this.unlinkAsync(this.songFileName).catch(console.error);
           }
 
+          this.isPlaying = false;
+
           if (this.client) {
-            this.client.music.isPlaying = false;
+            console.log("si hay client");
             const nextSong = this.client.music.queue.getNextItem();
+            console.log("🚀 ~ Music ~ nextSong:", nextSong);
             if (nextSong) {
+              console.log("Reproduciendo la siguiente canción en la cola");
               this.playSong(this.client, this.interaction!);
+            } else {
+              console.log("No hay más canciones en la cola");
             }
           }
         }

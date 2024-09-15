@@ -6,7 +6,7 @@ import {
 
 import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
-import { fetchPlaylistSongs, fetchSongInfo } from "../utils/musicUtils";
+import { fetchSongInfo } from "../utils/musicUtils";
 import ytdl from "@distube/ytdl-core";
 
 const play = {
