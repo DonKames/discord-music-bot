@@ -138,6 +138,8 @@ export class Music {
       const songFileName = await downloadSong(song.url);
 
       if (songFileName) {
+        this.setPlaybackContext(songFileName, client, interaction);
+
         const connection = await joinChannel(interaction);
         createAudioPlayerAndPlay(songFileName, interaction, client, connection);
       } else {
