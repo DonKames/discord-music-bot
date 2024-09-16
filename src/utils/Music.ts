@@ -62,9 +62,6 @@ export class Music {
     this.audioPlayer.on(
       "stateChange",
       async (oldState: AudioPlayerState, newState: AudioPlayerState) => {
-        // console.log("🚀 ~ Music ~ newState:", newState);
-        // console.log("🚀 ~ Music ~ oldState:", oldState);
-
         if (newState.status === "idle") {
           if (this.songFileName && fs.existsSync(this.songFileName)) {
             await this.unlinkAsync(this.songFileName).catch(console.error);
@@ -73,14 +70,7 @@ export class Music {
           this.isPlaying = false;
 
           if (this.client) {
-            console.log("si hay client");
-            // const nextSong = this.client.music.queue.getNextItem();
-            // console.log("🚀 ~ Music ~ nextSong:", nextSong);
-
-            console.log("Reproduciendo la siguiente canción en la cola");
             this.playSong(this.client, this.interaction!);
-          } else {
-            console.log("No hay client");
           }
         }
       }
@@ -138,7 +128,7 @@ export class Music {
         this.setPlaybackContext(songFileName, client, interaction);
 
         const connection = await joinChannel(interaction);
-        createAudioPlayerAndPlay(songFileName, interaction, client, connection);
+        createAudioPlayerAndPlay(songFileName, client, connection);
       } else {
         throw new Error("No se pudo descargar la canción");
       }

@@ -16,10 +16,5 @@ export async function handleInteraction(
     await command.execute(interaction);
   } catch (error) {
     errorHandler(error, interaction);
-    // console.error('Error al ejecutar el comando:', error);
-    // await interaction.reply({
-    //     content: 'Hubo un error al ejecutar este comando.',
-    //     ephemeral: true,
-    // });
   }
 }

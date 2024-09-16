@@ -8,6 +8,7 @@ import { ExtendedClient } from "../ExtendedClient";
 import { QueueSong } from "../utils/Music";
 import { fetchSongInfo } from "../utils/musicUtils";
 import ytdl from "@distube/ytdl-core";
+import { errorHandler } from "../utils/errorHandler";
 
 const play = {
   data: new SlashCommandBuilder()
@@ -27,7 +28,6 @@ const play = {
     try {
       const linkOption = interaction.options.get("link", true);
       let query = linkOption.value as string;
-      // console.log("🚀 ~ playCommand ~ link:", query);
 
       if (!query) {
         await interaction.reply(
@@ -37,14 +37,8 @@ const play = {
         return;
       }
 
-      // Responder de forma diferida
-      await interaction.deferReply();
-
-      let songInfo;
-
       if (ytdl.validateURL(query)) {
-        songInfo = await fetchSongInfo(query, interaction);
-        console.log("🚀 ~ execute ~ songInfo:", songInfo);
+        const songInfo = await fetchSongInfo(query);
 
         if (!songInfo) {
           await interaction.followUp(
@@ -55,18 +49,13 @@ const play = {
 
         const song: QueueSong = songInfo;
 
-        console.log("isPlaying", client.music.isPlaying);
-
         if (music.isPlaying) {
           music.queue.addToQueue(song);
-          await interaction.followUp(`Añadido a la cola: **${song.title}**`);
+          await interaction.reply(`Añadido a la cola: **${song.title}**`);
         } else {
           music.queue.addToQueue(song);
 
           music.playSong(client, interaction);
-          console.log("isPlaying 2", client.music.isPlaying);
-
-          await interaction.followUp(`Reproduciendo ahora: **${song.url}**`);
         }
         return;
       } else {
@@ -75,9 +64,8 @@ const play = {
       }
     } catch (error) {
       console.error("Error al procesar el comando 'play':", error);
-      await interaction.followUp(
-        "Hubo un error al intentar reproducir la canción."
-      );
+      errorHandler(error, interaction);
+      return;
     }
   },
 };

@@ -1,8 +1,6 @@
 import { CommandInteraction, SlashCommandBuilder } from "discord.js";
-import { getVoiceConnection } from "@discordjs/voice";
 
 import { ExtendedClient } from "../ExtendedClient";
-import { QueueSong } from "../utils/Music";
 import { errorHandler } from "../utils/errorHandler";
 
 const next = {
@@ -14,13 +12,10 @@ const next = {
 
     if (!client.music || client.music.queue.songs.length === 0) {
       await interaction.reply("No hay canciones en la cola de reproducción.");
-
       return;
     }
 
     playNextSong(client, interaction);
-
-    // await interaction.reply(`Siguiente canción: ${nextSong.title}`);
   },
 };
 

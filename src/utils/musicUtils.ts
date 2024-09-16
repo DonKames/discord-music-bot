@@ -13,45 +13,10 @@ import { promisify } from "util";
 
 import { Music, QueueSong } from "./Music";
 import { ExtendedClient } from "../ExtendedClient";
-import { errorHandler } from "./errorHandler";
 import { google } from "googleapis";
 import { validateInteractionGuildAndMember } from "./interactionUtils";
 
 const writeFileAsync = promisify(fs.writeFile);
-const unlinkAsync = promisify(fs.unlink);
-
-// export async function playSong(
-//   client: ExtendedClient,
-//   interaction: CommandInteraction
-// ) {
-//   const { url, title } = client.music.queue.getNextItem()!;
-
-//   try {
-//     // Descarga el archivo de audio
-//     const songFileName = await downloadSong(url);
-
-//     // Verifica que el archivo se haya descargado antes de intentar reproducirlo
-//     if (songFileName) {
-//       const connection = await joinChannel(interaction);
-
-//       if (!connection) {
-//         throw new Error("Error al unirse al canal de voz.");
-//       }
-
-//       createAudioPlayerAndPlay(songFileName, interaction, client, connection);
-
-//       if (interaction.replied) {
-//         await interaction.followUp(`Reproduciendo ahora: **${url}**`);
-//       } else {
-//         await interaction.reply(`Reproduciendo ahora: **${url}**`);
-//       }
-//     } else {
-//       throw new Error("Error al reproducir el archivo de audio.");
-//     }
-//   } catch (error) {
-//     errorHandler(error, interaction);
-//   }
-// }
 
 export async function joinChannel(
   interaction: CommandInteraction
@@ -70,12 +35,10 @@ export async function joinChannel(
 
 export async function createAudioPlayerAndPlay(
   songFileName: string,
-  interaction: CommandInteraction,
   client: ExtendedClient,
   connection: VoiceConnection
 ) {
   // Reproduce el archivo descargado
-  // const player = createAudioPlayer();
   const musicInstance = Music.getInstance();
   const audioPlayer = musicInstance.audioPlayer!;
 
@@ -83,25 +46,6 @@ export async function createAudioPlayerAndPlay(
   const resource = createAudioResource(songFileName!);
   audioPlayer.play(resource);
   client.music.isPlaying = true;
-
-  // if (interaction.deferred || interaction.replied) {
-  //   await interaction.followUp(`Reproduciendo ahora: **${title}**`);
-  // } else {
-  //   await interaction.reply(`Reproduciendo ahora: **${title}**`);
-  // }
-
-  // audioPlayer.state;
-  // Maneja la finalización de la reproducción y la cola
-  // audioPlayer.on("stateChange", async (oldState, newState) => {
-  //   if (newState.status === "idle") {
-  //     unlinkAsync(songFileName!).catch(console.error);
-  //     client.music.isPlaying = false;
-  //     const nextSong = client.music.queue.getNextItem();
-  //     if (nextSong) {
-  //       playSong(client, interaction);
-  //     }
-  //   }
-  // });
 }
 
 export async function downloadSong(url: string) {
@@ -168,33 +112,10 @@ export function pauseSong(interaction: CommandInteraction) {
 }
 
 // Función para obtener info de la canción y preparar el QueueSong
-/**
- * The function `fetchSongInfo` fetches information about a song from a given link and returns a
- * `QueueSong` object or null.
- * @param {string} link - The `link` parameter is a string that represents the URL of a video that you
- * want to fetch information for.
- * @param {CommandInteraction} interaction - The `interaction` parameter in the `fetchSongInfo`
- * function is of type `CommandInteraction`. This parameter likely represents an interaction with a
- * command in a Discord bot application. It can be used to access information about the interaction,
- * such as the user who triggered the command, the channel where the command
- * @returns The `fetchSongInfo` function returns a Promise that resolves to either a `QueueSong` object
- * containing the title and URL of the song, or `null` if there was an error or if the video
- * information could not be obtained.
- */
-export async function fetchSongInfo(
-  link: string,
-  interaction: CommandInteraction
-): Promise<QueueSong | null> {
+export async function fetchSongInfo(link: string): Promise<QueueSong | null> {
   try {
     const videoInfo = await ytdl.getInfo(link);
     const videoTitle = videoInfo.videoDetails.title;
-
-    if (!videoInfo || !videoTitle) {
-      await interaction.followUp(
-        "No se pudo obtener la información del video."
-      );
-      return null;
-    }
 
     const song: QueueSong = {
       title: videoTitle,
@@ -226,7 +147,6 @@ export async function fetchPlaylistSongs(
     }
 
     const auth = process.env.YOUTUBE_KEY;
-    console.log("🚀 ~ auth:", auth);
 
     const youtube = google.youtube({
       version: "v3",
@@ -237,15 +157,12 @@ export async function fetchPlaylistSongs(
 
     const songs: QueueSong[] = [];
 
-    // do {
     const response = await youtube.playlistItems.list({
       playlistId,
       part: ["snippet"],
       maxResults: 50,
       pageToken: nextPageToken,
     });
-
-    console.log("🚀 ~ response:", response);
 
     const items = response.data.items;
     if (items) {
@@ -263,7 +180,6 @@ export async function fetchPlaylistSongs(
     }
 
     nextPageToken = response.data.nextPageToken!;
-    // } while (nextPageToken);
 
     return songs;
   } catch (error) {

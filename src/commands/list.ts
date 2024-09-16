@@ -38,6 +38,9 @@ const list = {
 
           return;
         }
+      } else {
+        await interaction.reply("Proporcione un link valido");
+        return;
       }
 
       const playlistSongs = await fetchPlaylistSongs(url);
@@ -51,8 +54,6 @@ const list = {
           `Se agregaron ${playlistSongs.length} canciones a la cola de reproducción.`
         );
       } else {
-        client.music.playSong(client, interaction);
-
         // Embed para las canciones agregadas
         const addedSongsEmbed = new EmbedBuilder()
           .setDescription(
@@ -61,12 +62,9 @@ const list = {
           .setColor("#00FF00"); // Color personalizado
 
         await interaction.reply({ embeds: [addedSongsEmbed] });
-        await interaction.followUp(
-          `Reproduciendo ahora: **${playlistSongs[0].url}**`
-        );
-      }
 
-      console.log("🚀 ~ execute ~ playlistSongs:", playlistSongs);
+        client.music.playSong(client, interaction);
+      }
 
       return;
     } catch (error) {
