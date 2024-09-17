@@ -9,6 +9,10 @@ import { QueueSong } from "../utils/Music";
 import { fetchSongInfo } from "../utils/musicUtils";
 import ytdl from "@distube/ytdl-core";
 import { errorHandler } from "../utils/errorHandler";
+import {
+  replyOrFollowUpInteraction,
+  searchResultMenuActionRow,
+} from "../utils/interactionUtils";
 
 const play = {
   data: new SlashCommandBuilder()
@@ -60,6 +64,8 @@ const play = {
         return;
       } else {
         console.log("no es un URL valido, buscar termino");
+        // replyOrFollowUpInteraction(interaction, "Se buscara un termino");
+        searchResultMenuActionRow(interaction, query);
         return;
       }
     } catch (error) {

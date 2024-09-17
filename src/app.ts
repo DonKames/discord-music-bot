@@ -17,13 +17,5 @@ loadCommands(client);
 // Carga los eventos desde el directorio
 loadEvents(client);
 
-// Maneja las interacciones de tipo comando
-client.on(Events.InteractionCreate, async (interaction) => {
-  // Asegúrate de que la interacción es un comando antes de manejarla
-  if (interaction.isCommand()) {
-    handleInteraction(client, interaction);
-  }
-});
-
 // Inicia sesión en Discord con el token del bott
 client.login(process.env.DISCORD_TOKEN);

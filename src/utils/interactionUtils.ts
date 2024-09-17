@@ -27,7 +27,11 @@ export async function searchResultMenuActionRow(
     const searchResults = await searchYouTube(query);
 
     if (!searchResults) {
-      await interaction.followUp(
+      // await interaction.followUp(
+      //   "No se encontraron resultados para la búsqueda."
+      // );
+      await replyOrFollowUpInteraction(
+        interaction,
         "No se encontraron resultados para la búsqueda."
       );
       return;
@@ -48,7 +52,12 @@ export async function searchResultMenuActionRow(
     const actionRow =
       new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
 
-    const searchSongResponse = await interaction.followUp({
+    // const searchSongResponse = await interaction.followUp({
+    //   content: "Se encontraron varios resultados. Elige uno para reproducir:",
+    //   components: [actionRow],
+    // });
+
+    const searchSongResponse = await replyOrFollowUpInteraction(interaction, {
       content: "Se encontraron varios resultados. Elige uno para reproducir:",
       components: [actionRow],
     });
@@ -56,7 +65,11 @@ export async function searchResultMenuActionRow(
     return searchSongResponse;
   } catch (error) {
     console.log("🚀 ~ searchResultMenuActionRow ~ error:", error);
-    await interaction.followUp("Hubo un error al procesar la búsqueda.");
+    await replyOrFollowUpInteraction(
+      interaction,
+      "Hubo un error al procesar la búsqueda."
+    );
+    // await interaction.followUp("Hubo un error al procesar la búsqueda.");
   }
 }
 
@@ -101,4 +114,15 @@ export async function validateInteractionGuildAndMember(
     return false;
   }
   return member;
+}
+
+export async function replyOrFollowUpInteraction(
+  interaction: CommandInteraction,
+  content: any
+) {
+  if (interaction.replied || interaction.deferred) {
+    return await interaction.followUp(content);
+  } else {
+    return await interaction.reply(content);
+  }
 }
