@@ -95,18 +95,23 @@ export class Music {
     return Music.instance;
   }
 
-  public playSong(client: ExtendedClient, interaction: CommandInteraction) {
+  public async playSong(
+    client: ExtendedClient,
+    interaction: CommandInteraction
+  ) {
     const song = client.music.queue.getNextItem();
 
     if (song) {
       // Crear recurso y reproducir usando audioPlayer
       this.isPlaying = true;
       this.downloadAndPlay(song, client, interaction);
-      if (interaction.replied || interaction.deferred) {
-        interaction.followUp(`Reproduciendo ahora: ${song.url}`);
-      } else {
-        interaction.reply(`Reproduciendo ahora: ${song.url}`);
-      }
+
+      // if (interaction.replied || interaction.deferred) {
+      //   interaction.followUp(`Reproduciendo ahora: ${song.url}`);
+      // } else {
+      //   interaction.reply(`Reproduciendo ahora: ${song.url}`);
+      // }
+      await interaction.channel?.send(`Reproduciendo ahora: ${song.url}`);
     } else {
       if (interaction.replied || interaction.deferred) {
         interaction.followUp("No hay más canciones en la cola");

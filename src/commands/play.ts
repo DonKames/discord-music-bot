@@ -9,10 +9,7 @@ import { QueueSong } from "../utils/Music";
 import { fetchSongInfo } from "../utils/musicUtils";
 import ytdl from "@distube/ytdl-core";
 import { errorHandler } from "../utils/errorHandler";
-import {
-  replyOrFollowUpInteraction,
-  searchResultMenuActionRow,
-} from "../utils/interactionUtils";
+import { searchResultMenuActionRow } from "../utils/interactionUtils";
 
 const play = {
   data: new SlashCommandBuilder()
